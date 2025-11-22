@@ -1,0 +1,353 @@
+/* --- GLOBAL RESET & LAYOUT --- */
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: #333;
+    background-color: #220b3f;
+
+    /* --- BACKGROUND SETTINGS --- */
+    background-image: url('../images/background.png'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    padding-top: 60px;
+}
+
+main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+
+.main-container {
+    background-color: white;
+    color: black;
+    width: 95%;
+    height: 90%;
+    margin: auto;      
+    padding: 40px;          
+    border-radius: 15px;    
+    border: 1px solid #e0e0e0;
+    flex: 1;
+    box-shadow: 25px 25px 25px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* --- NAVBAR --- */
+nav {
+    display: flex;
+    list-style: none;
+    align-items: center;
+    height: 60px;
+    width: 100%;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+
+}
+
+.logo-container a {
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    height: 20px;
+    width: auto;
+    object-fit: contain;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 40px;
+}
+
+.nav-links a {
+    color: #E1BEE7;
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+    color: #fff;
+}
+
+.nav-links a.active {
+    font-weight: bold;
+    color: #fff;
+    border-bottom: 2px solid #fff;
+}
+
+.search-container {
+    position: relative;
+    margin-left: 50px;
+    width: 500px; 
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 50px 10px 20px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    color: white; 
+    background-color: #7B1FA2;
+    border: 1px solid #9C27B0;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: #E1BEE7;
+    opacity: 0.8;
+}
+
+.search-btn {
+    position: absolute;
+    right: 2px; 
+    left: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: #5e137f; 
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+    background-color: #4A148C;
+}
+
+.search-icon {
+    width: 16px;
+    height: 16px;
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
+}
+
+.user-menu{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.login-btn {
+    color: white;
+    padding: 8px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.login-btn:hover {
+    color: #9C27B0;
+}
+
+.join-btn {
+    color: white;
+    padding: 8px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s ease;
+    border: 1px solid #9C27B0;
+}
+
+.join-btn:hover {
+    background-color: #9C27B0; /* Even lighter purple on hover */
+}
+
+.logout-icon {
+    width: 20px;
+    height: 20px;
+    filter: invert(100%);
+    /* filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%); */
+}
+
+.logout-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    background-color: transparent; 
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: #ff00008c;
+}
+
+
+/* --- HEADER & FOOTER --- */
+header {
+    background-color: transparent;
+    color: white;
+    /* padding: 0 20px; */
+    padding: 0 100px 0 100px;
+
+    /* --- NEW STYLES FOR SMART SCROLL --- */
+    position: fixed;
+    top: 0;
+    width: calc(100% - 200px);
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out, background-color 0.3s ease;
+    box-shadow: none;
+}
+
+header.scrolled {
+    background-color: #220b3f;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+
+}
+
+header.hide {
+    transform: translateY(-100%);
+}
+
+footer {
+    background-color: #220b3f;
+    color: white;
+}
+.footer-top {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    margin: 0 auto;
+    padding-bottom: 1px;
+    flex-wrap: wrap;
+    
+}
+
+.footer-element {
+    min-width: 200px;
+}
+
+.footer-element h3 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 14px;
+    color: #e3aeec;
+}
+
+.footer-element ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-element li {
+    margin-bottom: 10px;
+}
+
+.footer-element a {
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+    display: block;
+}
+
+.footer-element a:hover {
+    color: #ffffff;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding: 25px 0;
+    background-color: #220b3f;
+    font-size: 12px;
+    color: #D1C4E9;
+    position: relative;
+}
+
+.footer-bottom::before {
+    content: "";
+    display: block;
+    width: 75%;
+    height: 2px;
+    background-color: #d09dee;
+    margin: 0 auto 20px auto;
+    border-radius: 10px;
+    opacity: 0.5;
+}
+
+.footer-bottom h3 {
+    margin: 0; /* Removes the default gap that creates the white bar */
+    font-weight: normal; /* Copyright text shouldn't be a bold header */
+}
+
+
+/* --- zobri time --- */
+/* --- HERO SECTION --- */
+.hero {
+    background-color: #F3E5F5; /* Pale Lavender Background */
+    text-align: center;
+    padding: 60px 20px;
+    margin-bottom: 40px;
+    border-radius: 8px;
+    border: 1px solid #E1BEE7;
+}
+
+.hero h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    color: #4A148C; /* Deep Purple Text */
+}
+
+.classic-button {
+    display: inline-block;
+    background-color: #4A148C; /* Deep Purple Button */
+    color: white;
+    padding: 12px 25px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.classic-button:hover {
+    background-color: #7B1FA2; /* Brighter on hover */
+}
+
+/* --- FEATURES GRID --- */
+.features {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    text-align: center;
+    padding-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.feature-card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    width: 200px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.feature-card h2 {
+    color: #4A148C; /* Purple Headers */
+}
