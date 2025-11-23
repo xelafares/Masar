@@ -4,26 +4,75 @@ document.addEventListener("DOMContentLoaded", function() {
     renderHeader();
     renderFooter();
     highlightActiveLink();
+    updateHomePageContent(); 
+    setupBookmarkToggle(); 
+    renderJobFilter();
 });
+
+let isLoggedIn = true; // Setting this to true for development/demonstration purposes
+
+function updateHomePageContent() {
+    let username = "Alex";
+    const welcomeMessage = document.getElementById("welcome-message");
+    const bookmarksButton = document.getElementById("bookmarks-button");
+
+    if (welcomeMessage) {
+        if (isLoggedIn) {
+            // Using strong tag instead of bold tag for semantic HTML
+            welcomeMessage.innerHTML = `Welcome back, <strong>${username}</strong>!`;
+            // Show the bookmarks button in the quick access section
+            if (bookmarksButton) {
+                bookmarksButton.classList.remove("hidden");
+            }
+        } else {
+            welcomeMessage.innerHTML = `Welcome to Masar!`;
+            // Ensure bookmarks button is hidden if logged out
+            if (bookmarksButton) {
+                bookmarksButton.classList.add("hidden");
+            }
+        }
+    }
+}
+
+async function renderJobFilter() {
+    const filterContainer = document.getElementById("job-filter");
+    if (!filterContainer) return; // Only run on the job.html page
+
+    try {
+        // Assume job_filter.html is in the same directory as job.html for this fetch path
+        const response = await fetch("job_filter.html"); 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const filterHTML = await response.text();
+        filterContainer.innerHTML = filterHTML;
+        
+        // IMPORTANT: Setup event listeners only AFTER the HTML is loaded
+        setupFilterSidebar();
+
+    } catch (error) {
+        console.error("Failed to load job filter:", error);
+    }
+}
 
 //implement search functionality later
 
 // async function performSearch(query) {
-//     if (!query) return;
+//     if (!query) return;
 
-//     console.log(`Searching for: ${query}...`);
+//     console.log(`Searching for: ${query}...`);
 
-//     try {
-//         const response = await fetch(`http://localhost:8000/search?q=${query}`);
-//         const data = await response.json();
-//         console.log("Results found:", data.results);
-        
-//         // Redirect to a results page with the data in the URL
-//         window.location.href = `search_results.html?q=${query}`;
+//     try {
+//         const response = await fetch(`http://localhost:8000/search?q=${query}`);
+//         const data = await response.json();
+//         console.log("Results found:", data.results);
+        
+//         // Redirect to a results page with the data in the URL
+//         window.location.href = `search_results.html?q=${query}`;
 
-//     } catch (error) {
-//         console.error("Search failed:", error);
-//     }
+//     } catch (error) {
+//         console.error("Search failed:", error);
+//     }
 // }
 
 document.addEventListener("", function() {
@@ -34,7 +83,6 @@ document.addEventListener("", function() {
 
 function renderHeader() {
     const header = document.getElementById("header");
-    let isLoggedIn = false; // Change this to true to simulate logged-in state
     let userSection = '';
     let bookmarks = '';
 
@@ -102,13 +150,13 @@ function renderHeader() {
     // const searchBtn = document.querySelector(".search-btn");
 
     // searchInput.addEventListener("keypress", function(event) {
-    //     if (event.key === "Enter") {
-    //         performSearch(searchInput.value);
-    //     }
+    //     if (event.key === "Enter") {
+    //         performSearch(searchInput.value);
+    //     }
     // });
 
     // searchBtn.addEventListener("click", function() {
-    //     performSearch(searchInput.value);
+    //     performSearch(searchInput.value);
     // });
 
 }
@@ -167,6 +215,84 @@ function highlightActiveLink() {
             link.classList.add("active");
         }
     });
+}
+
+function setupBookmarkToggle() {
+    const jobListings = document.querySelectorAll('.job-listing');
+    
+    // Assuming you have bookmark_empty.png and bookmark_full.png in ../static/images/
+    const emptyIconPath = '../static/images/bookmark_empty.png';
+    const fullIconPath = '../static/images/bookmark_full.png';
+
+    jobListings.forEach(listing => {
+        const bookmarkBtn = listing.querySelector('.bookmark-btn');
+        const bookmarkIcon = listing.querySelector('.bookmark-icon');
+
+        if (bookmarkBtn) {
+            bookmarkBtn.addEventListener('click', function() {
+                let isBookmarked = this.getAttribute('data-bookmarked') === 'true';
+
+                if (isBookmarked) {
+                    // Unbookmark it
+                    this.setAttribute('data-bookmarked', 'false');
+                    bookmarkIcon.src = emptyIconPath;
+                    bookmarkIcon.alt = "Bookmark";
+                    // In a real app, you would send a request to remove the bookmark here
+                    // console.log(`Job ${listing.getAttribute('data-job-id')} unbookmarked.`);
+                } else {
+                    // Bookmark it
+                    this.setAttribute('data-bookmarked', 'true');
+                    bookmarkIcon.src = fullIconPath;
+                    bookmarkIcon.alt = "Bookmarked";
+                    // In a real app, you would send a request to save the bookmark here
+                    // console.log(`Job ${listing.getAttribute('data-job-id')} bookmarked.`);
+                }
+            });
+        }
+    });
+}
+
+function setupFilterSidebar() {
+    const filterSidebar = document.getElementById('job-filter-sidebar');
+    const filterToggleBtn = document.getElementById('filter-toggle-btn');
+    const closeFilterBtn = document.getElementById('close-filter-btn');
+    const salarySlider = document.getElementById('salary-slider');
+    const salaryInput = document.getElementById('salary-input');
+
+    if (filterToggleBtn && filterSidebar) {
+        filterToggleBtn.addEventListener('click', () => {
+            filterSidebar.classList.toggle('filters-visible');
+        });
+
+        closeFilterBtn.addEventListener('click', () => {
+            filterSidebar.classList.remove('filters-visible');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (filterSidebar.classList.contains('filters-visible') && 
+                !filterSidebar.contains(event.target) && 
+                event.target !== filterToggleBtn) {
+                filterSidebar.classList.remove('filters-visible');
+            }
+        });
+    }
+    
+    if (salarySlider && salaryInput) {
+        salarySlider.addEventListener('input', () => {
+            salaryInput.value = salarySlider.value;
+        });
+
+        salaryInput.addEventListener('input', () => {
+            let value = parseInt(salaryInput.value);
+            if (value >= salarySlider.min && value <= salarySlider.max) {
+                salarySlider.value = value;
+            } else if (value > salarySlider.max) {
+                 salarySlider.value = salarySlider.max;
+            } else if (value < salarySlider.min) {
+                 salarySlider.value = salarySlider.min;
+            }
+        });
+    }
 }
 
 let lastScrollY = window.scrollY;
