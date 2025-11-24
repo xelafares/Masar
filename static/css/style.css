@@ -19,46 +19,69 @@ body {
     padding-top: 60px;
 }
 
+/* NEW: Filter Haze Refinement - Blur is applied to surrounding content (header, main, footer) */
+body.filter-open > main, body.filter-open > footer, body.filter-open > header {
+    filter: blur(2px) brightness(0.9); 
+    pointer-events: none;
+    transition: filter 0.3s ease;
+}
+/* NEW: Overlay for background dimming (sits below the filter sidebar) */
+.filter-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999; /* Below the sidebar (1001) and header (1000) */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+.filter-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
 main {
+    /* NEW: The main content takes on the light purple background */
+    background-color: #FAF5FF; /* White-ish purple color */
     flex: 1;
-    padding: 20px;
+    padding: 0; /* Remove main padding */
     display: flex;
     flex-direction: column;
 }
 
-/* Specific padding for the home page main content */
+/* Specific padding for the home page main content (must be set to transparent) */
 main.home-main {
+    background-color: transparent; /* Home page remains transparent for the welcome section */
     flex: 1;
-    padding: 20px;
+    padding: 20px 0;
     display: flex;
     flex-direction: column;
 }
 
 /* --- MAIN CONTAINER ADJUSTMENTS (Used for Job Page and other general content) --- */
-.main-container {
-    background-color: #ffffff; /* Default white background */
-    color: black;
-    width: 95%;
-    max-width: 1200px; 
-    min-height: 80vh; 
-    margin: 40px auto; 
-    padding: 40px;          
-    border-radius: 15px;    
-    border: 1px solid #e0e0e0;
-    flex: 1;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1); 
-}
 
-/* Specific styling for the Job Page container (White with a slight purple tinge) */
+/* Specific styling for the Job Page container (Content inside the new full background) */
 .job-page-container {
-    background-color: #FAF5FF; 
-    padding: 50px 80px; 
+    background-color: transparent; /* Changed to transparent */
+    padding: 50px 0; /* Adjusted padding for full width content */
+    max-width: 1200px; /* Keep max-width for content alignment */
+    width: 95%;
+    margin: 0 auto;
+    min-height: 80vh; 
+    flex: 1;
 }
 
 /* Specific styling for the Roadmap Page container */
 .roadmap-page-container {
-    background-color: white; /* Keep white background for content */
-    padding: 50px 80px; 
+    background-color: transparent; 
+    padding: 50px 0; 
+    max-width: 1200px; 
+    width: 95%;
+    margin: 0 auto;
+    min-height: 80vh;
     text-align: left; /* Aligned left */
 }
 
@@ -143,17 +166,21 @@ h1 {
     margin-bottom: 40px;
     font-size: 2.5rem;
     text-align: left; 
-    text-shadow: none; 
+    text-shadow: none;
+    padding-left: 20px; /* Adjust padding for better look */
+    padding-right: 20px;
 }
 .roadmap-main-title {
     text-align: left;
     margin-bottom: 10px;
+    padding: 0;
 }
 .roadmap-subtitle {
     font-size: 1.1rem;
     color: #777;
     max-width: 800px;
     margin: 0 0 50px 0; 
+    padding: 0 20px;
 }
 .highlight {
     color: #E1BEE7; /* Lightest purple for emphasis */
@@ -161,6 +188,7 @@ h1 {
 }
 
 /* --- CLASSIC BUTTON STYLING (Used by Filter Jobs button) --- */
+/* The .classic-button is no longer used for the filter toggle */
 .classic-button {
     display: inline-block;
     background-color: #4A148C; /* Deep Purple Button */
@@ -332,7 +360,7 @@ h1 {
     /* Forces exactly two columns */
     grid-template-columns: 1fr 1fr; 
     gap: 30px;
-    padding: 40px 0;
+    padding: 40px 20px;
     margin-bottom: 50px;
 }
 
@@ -466,9 +494,33 @@ h1 {
     display: flex;
     align-items: center;
     gap: 15px;
+    padding-right: 20px; /* Adjust padding for better look */
 }
 
-/* NEW: Sort Dropdown Styling */
+/* Filter Icon Button Styling */
+.filter-toggle-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.3s;
+}
+
+.filter-toggle-icon {
+    width: 30px;
+    height: 30px;
+    opacity: 0.5; /* Faded in until clicked */
+    transition: opacity 0.3s;
+    /* Deep purple filter */
+    filter: invert(15%) sepia(87%) saturate(2256%) hue-rotate(264deg) brightness(84%) contrast(92%); 
+}
+
+.filter-toggle-icon-btn:hover .filter-toggle-icon {
+    opacity: 0.8;
+}
+
+
+/* Sort Dropdown Styling */
 .sort-dropdown {
     padding: 10px 15px;
     border: 1px solid #ccc;
@@ -483,7 +535,7 @@ h1 {
     background-size: 10px auto;
 }
 
-/* NEW: Active Filters Display */
+/* Active Filters Display */
 .active-filters-container {
     display: flex;
     flex-wrap: wrap;
@@ -491,6 +543,8 @@ h1 {
     margin-bottom: 30px;
     padding-bottom: 10px;
     border-bottom: 1px solid #E1BEE7;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .active-filter-pill {
@@ -518,16 +572,16 @@ h1 {
     opacity: 1;
 }
 
-/* Filter Sidebar Styles (remains the same) */
+/* Filter Sidebar Styles (FIX: Ensure solid background and highest z-index) */
 #job-filter-sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
     width: 350px;
-    background-color: white;
+    background-color: white; /* KEEP SOLID WHITE BACKGROUND */
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
-    z-index: 1001;
+    z-index: 1001; /* Must be higher than all blurred elements and the overlay (999) */
     padding: 30px;
     box-sizing: border-box;
     overflow-y: auto;
@@ -673,7 +727,8 @@ h1 {
 
 .job-listing {
     display: flex;
-    padding: 30px 0;
+    /* Added horizontal padding to the listing itself */
+    padding: 30px 20px;
     border-bottom: 1px solid #E1BEE7; /* Thin, light purple line separator */
     transition: background-color 0.3s;
 }
@@ -983,29 +1038,36 @@ nav {
 
 /* --- HEADER & FOOTER --- */
 header {
-    background-color: transparent;
+    /* DEFAULT: Transparent background for the homepage */
+    background-color: transparent; 
     color: white;
-    /* padding: 0 20px; */
-    padding: 0 100px 0 100px;
-
-    /* --- NEW STYLES FOR SMART SCROLL --- */
+    padding: 0 100px;
     position: fixed;
     top: 0;
     width: calc(100% - 200px);
     z-index: 1000;
-    transition: transform 0.3s ease-in-out, background-color 0.3s ease;
-    box-shadow: none;
+    box-shadow: none; 
+    /* Added transform transition for smart scroll */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-in-out;
 }
 
-header.scrolled {
-    background-color: #220b3f;
+/* NEW: This class forces the header to be opaque when scrolling on the homepage */
+header.scrolling-opaque {
+    background-color: #220b3f; /* Dark Purple Theme Color */
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-
 }
 
+/* Solid Header for all non-homepage pages, applied via JS */
+header.solid-header {
+    background-color: #220b3f; /* Dark Purple Theme Color */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Smart Scroll Hide Logic */
 header.hide {
     transform: translateY(-100%);
 }
+
 
 footer {
     background-color: #220b3f;

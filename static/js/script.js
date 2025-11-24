@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function() {
     updateHomePageContent(); 
     setupBookmarkToggle(); 
     renderJobFilter();
+    setupSmartScroll();
 });
 
 let isLoggedIn = true; // Setting this to true for development/demonstration purposes
@@ -18,15 +19,12 @@ function updateHomePageContent() {
 
     if (welcomeMessage) {
         if (isLoggedIn) {
-            // Using strong tag instead of bold tag for semantic HTML
             welcomeMessage.innerHTML = `Welcome back, <strong>${username}</strong>!`;
-            // Show the bookmarks button in the quick access section
             if (bookmarksButton) {
                 bookmarksButton.classList.remove("hidden");
             }
         } else {
             welcomeMessage.innerHTML = `Welcome to Masar!`;
-            // Ensure bookmarks button is hidden if logged out
             if (bookmarksButton) {
                 bookmarksButton.classList.add("hidden");
             }
@@ -35,51 +33,29 @@ function updateHomePageContent() {
 }
 
 async function renderJobFilter() {
-    const filterContainer = document.getElementById("job-filter");
-    if (!filterContainer) return; // Only run on the job.html page
+    const jobFilterContainer = document.getElementById("job-filter"); 
+    const bookmarksFilterContainer = document.getElementById("bookmarks-filter");
+    
+    const filterContainer = jobFilterContainer || bookmarksFilterContainer;
+    if (!filterContainer) return;
 
     try {
-        // Assume job_filter.html is in the same directory as job.html for this fetch path
-        const response = await fetch("job_filter.html"); 
+        const response = await fetch("job_filter.html");
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const filterHTML = await response.text();
         filterContainer.innerHTML = filterHTML;
         
-        // IMPORTANT: Setup event listeners only AFTER the HTML is loaded
-        setupFilterSidebar();
+        setTimeout(() => {
+            setupFilterSidebar();
+            setupFilterToggleButtons();
+        }, 100);
 
     } catch (error) {
         console.error("Failed to load job filter:", error);
     }
 }
-
-//implement search functionality later
-
-// async function performSearch(query) {
-//     if (!query) return;
-
-//     console.log(`Searching for: ${query}...`);
-
-//     try {
-//         const response = await fetch(`http://localhost:8000/search?q=${query}`);
-//         const data = await response.json();
-//         console.log("Results found:", data.results);
-        
-//         // Redirect to a results page with the data in the URL
-//         window.location.href = `search_results.html?q=${query}`;
-
-//     } catch (error) {
-//         console.error("Search failed:", error);
-//     }
-// }
-
-document.addEventListener("", function() {
-    renderHeader();
-    renderFooter();
-    highlightActiveLink();
-});
 
 function renderHeader() {
     const header = document.getElementById("header");
@@ -143,22 +119,6 @@ function renderHeader() {
     if (header) {
         header.innerHTML = headerHTML;
     }
-
-    // Search functionality to be implemented later //
-
-    // const searchInput = document.querySelector(".search-input");
-    // const searchBtn = document.querySelector(".search-btn");
-
-    // searchInput.addEventListener("keypress", function(event) {
-    //     if (event.key === "Enter") {
-    //         performSearch(searchInput.value);
-    //     }
-    // });
-
-    // searchBtn.addEventListener("click", function() {
-    //     performSearch(searchInput.value);
-    // });
-
 }
 
 function renderFooter() {
@@ -204,10 +164,10 @@ function logout() {
     window.location.href = "index.html";
 }
 
-// wasnt me LMAO
 function highlightActiveLink() {
     const currentPath = window.location.pathname.split("/").pop(); 
     const navLinks = document.querySelectorAll(".nav-links a");
+    const header = document.querySelector("header");
 
     navLinks.forEach(link => {
         const linkPath = link.getAttribute("href");
@@ -215,12 +175,20 @@ function highlightActiveLink() {
             link.classList.add("active");
         }
     });
+
+    // LOGIC: Make header solid purple on all pages EXCEPT index.html
+    if (header) {
+        if (currentPath !== "index.html" && currentPath !== "") {
+            header.classList.add("solid-header");
+        } else {
+            header.classList.remove("solid-header");
+        }
+    }
 }
 
 function setupBookmarkToggle() {
     const jobListings = document.querySelectorAll('.job-listing');
     
-    // Assuming you have bookmark_empty.png and bookmark_full.png in ../static/images/
     const emptyIconPath = '../static/images/bookmark_empty.png';
     const fullIconPath = '../static/images/bookmark_full.png';
 
@@ -233,49 +201,82 @@ function setupBookmarkToggle() {
                 let isBookmarked = this.getAttribute('data-bookmarked') === 'true';
 
                 if (isBookmarked) {
-                    // Unbookmark it
                     this.setAttribute('data-bookmarked', 'false');
                     bookmarkIcon.src = emptyIconPath;
                     bookmarkIcon.alt = "Bookmark";
-                    // In a real app, you would send a request to remove the bookmark here
-                    // console.log(`Job ${listing.getAttribute('data-job-id')} unbookmarked.`);
                 } else {
-                    // Bookmark it
                     this.setAttribute('data-bookmarked', 'true');
                     bookmarkIcon.src = fullIconPath;
                     bookmarkIcon.alt = "Bookmarked";
-                    // In a real app, you would send a request to save the bookmark here
-                    // console.log(`Job ${listing.getAttribute('data-job-id')} bookmarked.`);
                 }
             });
         }
     });
 }
 
+function setupFilterToggleButtons() {
+    const filterToggleBtn = document.getElementById('filter-toggle-btn') || document.getElementById('bookmarks-filter-toggle-btn');
+    const body = document.body;
+    
+    if (!filterToggleBtn) return;
+    
+    let overlay = document.querySelector('.filter-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.classList.add('filter-overlay');
+        document.body.appendChild(overlay);
+    }
+    
+    filterToggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const actualSidebar = document.getElementById('job-filter-sidebar');
+        if (!actualSidebar) return;
+
+        const isVisible = actualSidebar.classList.contains('filters-visible');
+        
+        if (!isVisible) {
+            actualSidebar.classList.add('filters-visible');
+            body.classList.add('filter-open');
+            overlay.classList.add('active');
+        } else {
+            actualSidebar.classList.remove('filters-visible');
+            body.classList.remove('filter-open');
+            overlay.classList.remove('active');
+        }
+    });
+}
+
 function setupFilterSidebar() {
     const filterSidebar = document.getElementById('job-filter-sidebar');
-    const filterToggleBtn = document.getElementById('filter-toggle-btn');
     const closeFilterBtn = document.getElementById('close-filter-btn');
     const salarySlider = document.getElementById('salary-slider');
     const salaryInput = document.getElementById('salary-input');
+    const body = document.body;
+    
+    if (!filterSidebar) return;
+    
+    let overlay = document.querySelector('.filter-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.classList.add('filter-overlay');
+        document.body.appendChild(overlay);
+    }
 
-    if (filterToggleBtn && filterSidebar) {
-        filterToggleBtn.addEventListener('click', () => {
-            filterSidebar.classList.toggle('filters-visible');
-        });
-
+    if (closeFilterBtn) {
         closeFilterBtn.addEventListener('click', () => {
             filterSidebar.classList.remove('filters-visible');
-        });
-
-        document.addEventListener('click', (event) => {
-            if (filterSidebar.classList.contains('filters-visible') && 
-                !filterSidebar.contains(event.target) && 
-                event.target !== filterToggleBtn) {
-                filterSidebar.classList.remove('filters-visible');
-            }
+            body.classList.remove('filter-open');
+            overlay.classList.remove('active');
         });
     }
+
+    overlay.addEventListener('click', () => {
+        if (filterSidebar.classList.contains('filters-visible')) {
+            filterSidebar.classList.remove('filters-visible');
+            body.classList.remove('filter-open');
+            overlay.classList.remove('active');
+        }
+    });
     
     if (salarySlider && salaryInput) {
         salarySlider.addEventListener('input', () => {
@@ -287,35 +288,41 @@ function setupFilterSidebar() {
             if (value >= salarySlider.min && value <= salarySlider.max) {
                 salarySlider.value = value;
             } else if (value > salarySlider.max) {
-                 salarySlider.value = salarySlider.max;
+                salarySlider.value = salarySlider.max;
             } else if (value < salarySlider.min) {
-                 salarySlider.value = salarySlider.min;
+                salarySlider.value = salarySlider.min;
             }
         });
     }
 }
 
+/* Smart Scroll Logic for Header */
 let lastScrollY = window.scrollY;
 
-window.addEventListener("scroll", () => {
-    const header = document.querySelector("header");
-    if (!header) return; 
+function setupSmartScroll() {
+    window.addEventListener("scroll", () => {
+        const header = document.querySelector("header");
+        if (!header) return; 
 
-    // 1. TRANSPARENCY LOGIC
-    // If we are NOT at the very top (scrollY > 0), make it solid
-    if (window.scrollY > 0) {
-        header.classList.add("scrolled");
-    } else {
-        // If we are at the top, make it transparent
-        header.classList.remove("scrolled");
-    }
+        const currentPath = window.location.pathname.split("/").pop();
+        const isHomePage = currentPath === "index.html" || currentPath === "";
 
-    // 2. HIDE/SHOW LOGIC (Existing)
-    if (window.scrollY > lastScrollY && window.scrollY > 50) {
-        header.classList.add("hide");
-    } else {
-        header.classList.remove("hide");
-    }
+        // 1. OPAQUE/TRANSPARENT LOGIC (Only runs on the homepage)
+        if (isHomePage) {
+            if (window.scrollY > 5) {
+                header.classList.add("scrolling-opaque");
+            } else {
+                header.classList.remove("scrolling-opaque");
+            }
+        }
 
-    lastScrollY = window.scrollY;
-});
+        // 2. HIDE/SHOW LOGIC 
+        if (window.scrollY > lastScrollY && window.scrollY > 50) {
+            header.classList.add("hide");
+        } else {
+            header.classList.remove("hide");
+        }
+
+        lastScrollY = window.scrollY;
+    });
+}

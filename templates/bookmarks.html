@@ -9,6 +9,7 @@
 </head>
 <body>
     <div id="header"></div>
+    <div id="bookmarks-filter"></div>
 
     <main>
         
@@ -23,11 +24,14 @@
                         <option value="date-posted">Sort by: Date Posted</option>
                         <option value="salary-high">Sort by: Salary (High)</option>
                     </select>
+                    <button id="bookmarks-filter-toggle-btn" class="filter-toggle-icon-btn" title="Filter Bookmarks">
+                        <img src="../static/images/filter.png" alt="Filter Icon" class="filter-toggle-icon">
+                    </button>
                 </div>
             </div>
             
             <div id="active-filters-container" class="active-filters-container">
-                </div>
+            </div>
             
             <section class="job-list-wrapper">
                 
@@ -52,7 +56,7 @@
                                 <span class="tech-tag">TypeScript</span>
                                 <span class="tech-tag">Node.js</span>
                             </div>
-                            <p class="salary job-meta">**Salary:** $120,000 - $140,000 / year</p>
+                            <p class="salary job-meta">Salary: $120,000 - $140,000 / year</p>
 
                             <p class="job-description">We are seeking a highly skilled engineer to lead the development of our customer-facing web application using modern JavaScript frameworks.</p>
 
@@ -84,7 +88,7 @@
                                 <span class="tech-tag">Kubernetes</span>
                                 <span class="tech-tag">Python</span>
                             </div>
-                            <p class="salary job-meta">**Salary:** $155,000 - $175,000 / year</p>
+                            <p class="salary job-meta">Salary: $155,000 - $175,000 / year</p>
 
                             <p class="job-description">Manage and optimize our cloud infrastructure for maximum performance and scalability across global regions.</p>
 
@@ -116,9 +120,7 @@
                                 <span class="tech-tag">SQL</span>
                                 <span class="tech-tag">Azure</span>
                             </div>
-                            <p class="salary job-meta">**Salary:** $110,000 - $130,000 / year</p>
-
-                            <p class="job-description">Develop and deploy machine learning models to analyze vast datasets and predict market trends.</p>
+                            <p class="salary job-meta">Salary: $110,000 - $130,000 / year</p>
 
                             <div class="job-footer">
                                 <p class="posted-date">Posted: 3 hours ago</p>
@@ -134,7 +136,7 @@
         
     </main>
 
-    <div id="footer"></footer>
+    <div id="footer"></div>
 
     <script src="../static/js/script.js"></script>
 </body>

@@ -9,6 +9,7 @@
 </head>
 <body>
     <div id="header"></div>
+    <div id="bookmarks-filter"></div>
 
     <main>
         
@@ -23,8 +24,8 @@
                         <option value="salary-high">Sort by: Salary (High)</option>
                         <option value="salary-low">Sort by: Salary (Low)</option>
                     </select>
-                    <button id="filter-toggle-btn" class="classic-button">
-                        Filter Jobs
+                    <button id="filter-toggle-btn" class="filter-toggle-icon-btn" title="Filter Jobs">
+                        <img src="../static/images/filter.png" alt="Filter Icon" class="filter-toggle-icon">
                     </button>
                 </div>
             </div>
@@ -34,8 +35,6 @@
                 <span class="active-filter-pill">Salary > $100k <button>x</button></span>
             </div>
             
-            <div id="job-filter"></div> 
-
             <section class="job-list-wrapper">
                 
                 <section class="job-list">
@@ -112,7 +111,7 @@
                                 <h2 class="job-title">Data Scientist - ML Focus</h2>
                                 <button class="bookmark-btn" data-bookmarked="false">
                                     <img src="../static/images/bookmark_empty.png" alt="Bookmark" class="bookmark-icon">
-                                </sitemap>
+                                </button>
                             </div>
 
                             <p class="company-name">Deep Insights Corp.</p>
@@ -141,7 +140,7 @@
         
     </main>
 
-    <div id="footer"></footer>
+    <div id="footer"></div>
 
     <script src="../static/js/script.js"></script>
 </body>
