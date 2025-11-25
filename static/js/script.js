@@ -107,21 +107,21 @@ async function renderJobFilter() {
 //implement search functionality later
 
 // async function performSearch(query) {
-//     if (!query) return;
+//     if (!query) return;
 
-//     console.log(`Searching for: ${query}...`);
+//     console.log(`Searching for: ${query}...`);
 
-//     try {
-//         const response = await fetch(`http://localhost:8000/search?q=${query}`);
-//         const data = await response.json();
-//         console.log("Results found:", data.results);
-        
-//         // Redirect to a results page with the data in the URL
-//         window.location.href = `search_results.html?q=${query}`;
+//     try {
+//         const response = await fetch(`http://localhost:8000/search?q=${query}`);
+//         const data = await response.json();
+//         console.log("Results found:", data.results);
+        
+//         // Redirect to a results page with the data in the URL
+//         window.location.href = `search_results.html?q=${query}`;
 
-//     } catch (error) {
-//         console.error("Search failed:", error);
-//     }
+//     } catch (error) {
+//         console.error("Search failed:", error);
+//     }
 // }
 
 function renderHeader() {
@@ -220,15 +220,16 @@ function renderFooter() {
                     <a href="https://github.com/xelafares/Masar" target="_blank" class="github-link" title="GitHub Repository">
                         <img src="../static/images/github.png" alt="GitHub Logo" class="github-icon-img">
                     </a>
-                    <a href="https://linkedin.com/profile1" target="_blank" title="LinkedIn Profile 1">
+                    <a href="https://www.linkedin.com/in/yousef-ahmed-b75592370" target="_blank" title="LinkedIn Profile 1">
                         <img src="../static/images/linkedin.png" alt="LinkedIn" class="social-icon">
                     </a>
-                    <a href="https://linkedin.com/profile2" target="_blank" title="LinkedIn Profile 2">
+                    <a href="https://www.linkedin.com/in/faressarhan/" target="_blank" title="LinkedIn Profile 2">
                         <img src="../static/images/linkedin.png" alt="LinkedIn" class="social-icon">
                     </a>
-                    <a href="https://twitter.com/Masar" target="_blank" title="Twitter/X">
+                    <img src="../static/images/x.png" alt="Twitter/X" class="social-icon">
+                    <!-- <a href="" title="Twitter/X">
                         <img src="../static/images/x.png" alt="Twitter/X" class="social-icon"> 
-                    </a>
+                    </a> -->
                 </div>
             </div>
 
@@ -350,13 +351,13 @@ function setupBookmarkToggle() {
 function setupFilterToggleButtons() {
     const filterToggleBtn = document.getElementById('filter-toggle-btn') || document.getElementById('bookmarks-filter-toggle-btn');
     const body = document.body;
-    let overlay = document.querySelector('.filter-overlay');
 
     if (!filterToggleBtn) return;
     
     // This handler will toggle the visibility of the sidebar and the overlay/blur effect.
     filterToggleBtn.addEventListener('click', () => {
         const actualSidebar = document.getElementById('job-filter-sidebar');
+        const overlay = document.querySelector('.filter-overlay'); // Get overlay each time
         if (!actualSidebar) return; 
 
         const isVisible = actualSidebar.classList.contains('filters-visible');
@@ -392,7 +393,7 @@ function setupFilterSidebar() {
     }
 
     // This logic handles closing the sidebar via the 'X' button or the overlay click
-    if (filterSidebar) {
+    if (filterSidebar && closeFilterBtn) {
         closeFilterBtn.addEventListener('click', () => {
             filterSidebar.classList.remove('filters-visible');
             body.classList.remove('filter-open');
@@ -400,7 +401,7 @@ function setupFilterSidebar() {
         });
 
         // Close on outside click using the overlay
-        overlay.addEventListener('click', (event) => {
+        overlay.addEventListener('click', () => {
             if (filterSidebar.classList.contains('filters-visible')) {
                 filterSidebar.classList.remove('filters-visible');
                 body.classList.remove('filter-open');
@@ -409,6 +410,7 @@ function setupFilterSidebar() {
         });
     }
     
+    // Salary slider synchronization
     if (salarySlider && salaryInput) {
         salarySlider.addEventListener('input', () => {
             salaryInput.value = salarySlider.value;
@@ -459,4 +461,199 @@ function setupSmartScroll() {
 
         lastScrollY = window.scrollY;
     });
+}
+
+/* --- ROADMAP LOGIC --- */
+
+let currentView = 'categories';
+
+function showJobRoles(e) {
+    if(e) e.preventDefault();
+    
+    document.getElementById('roadmap-intro').style.display = 'none';
+    document.getElementById('categories-view').style.display = 'none';
+    
+    const rolesView = document.getElementById('roles-view');
+    rolesView.style.display = 'grid'; 
+    
+    // Inject the available roles
+    rolesView.innerHTML = `
+        <div class="roadmap-category-box role-bg" onclick="loadRoadmap('frontend')" style="cursor:pointer; height:auto; padding-top:20%;">
+            <div class="content-wrapper"><h3>Frontend Developer</h3></div>
+        </div>
+        <div class="roadmap-category-box role-bg" onclick="loadRoadmap('backend')" style="cursor:pointer; height:auto; padding-top:20%;">
+            <div class="content-wrapper"><h3>Backend Developer</h3></div>
+        </div>
+    `;
+    currentView = 'roles';
+}
+
+function loadRoadmap(roadmapId) {
+    // 1. Get Static Content from roadmap_data.js
+    const data = roadmapData[roadmapId];
+    if(!data) return;
+
+    // 2. Switch Views
+    document.getElementById('roles-view').style.display = 'none';
+    const timelineView = document.getElementById('timeline-view');
+    timelineView.style.display = 'block';
+
+    // 3. Populate Header
+    document.getElementById('roadmap-title').innerText = data.title;
+    document.getElementById('roadmap-desc').innerText = data.description;
+
+    const container = document.getElementById('timeline-container');
+    container.innerHTML = ''; 
+
+    // 4. Generate Steps
+    data.steps.forEach(step => {
+        // --- READ PROGRESS FROM LOCAL STORAGE ---
+        // We create a unique key: user_roadmapID_stepID
+        const storageKey = `masar_progress_${roadmapId}_${step.id}`;
+        const isCompleted = localStorage.getItem(storageKey) === 'true';
+
+        // Build Resources Links
+        const resourcesHTML = step.resources.map(res => {
+            const isVideo = res.type === 'video';
+            // Use distinct emojis or icons for visual learners
+            const icon = isVideo ? '▶️' : '📄'; 
+            const cssClass = isVideo ? 'res-video' : 'res-article';
+            return `
+                <a href="${res.url}" target="_blank" class="resource-item ${cssClass}">
+                    <span class="res-icon">${icon}</span>
+                    <span class="res-title">${res.title}</span>
+                </a>
+            `;
+        }).join('');
+
+        // Build the HTML card
+        const stepHTML = `
+            <div class="timeline-step ${isCompleted ? 'completed' : ''}" id="step-${step.id}">
+                <div class="timeline-marker"></div>
+                <div class="step-card">
+                    <div class="step-header">
+                        <h3>${step.title}</h3>
+                        <input type="checkbox" class="progress-checkbox" 
+                            ${isCompleted ? 'checked' : ''} 
+                            onchange="toggleStepProgress('${roadmapId}', '${step.id}', this)">
+                    </div>
+                    <p class="step-desc">${step.desc}</p>
+                    <div class="resources-list">
+                        ${resourcesHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += stepHTML;
+    });
+
+    currentView = 'timeline';
+}
+
+function toggleStepProgress(roadmapId, stepId, checkbox) {
+    const storageKey = `masar_progress_${roadmapId}_${stepId}`;
+    const stepDiv = document.getElementById(`step-${stepId}`);
+
+    if (checkbox.checked) {
+        // SAVE to LocalStorage
+        localStorage.setItem(storageKey, 'true');
+        stepDiv.classList.add('completed');
+    } else {
+        // REMOVE from LocalStorage
+        localStorage.removeItem(storageKey);
+        stepDiv.classList.remove('completed');
+    }
+}
+
+function goBack() {
+    if (currentView === 'timeline') {
+        document.getElementById('timeline-view').style.display = 'none';
+        showJobRoles(null); 
+    } else if (currentView === 'roles') {
+        document.getElementById('roles-view').style.display = 'none';
+        document.getElementById('categories-view').style.display = 'grid';
+        document.getElementById('roadmap-intro').style.display = 'block';
+        currentView = 'categories';
+    }
+}
+
+/* --- NEW ROADMAP FUNCTIONS --- */
+
+// 1. Render the Grid of Boxes (used by roles, skills, trending pages)
+function renderGrid(categoryFilter, containerId, bgClass) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Loop through all data
+    for (const key in roadmapData) {
+        const item = roadmapData[key];
+        
+        // If the item belongs to this category (role/skill/trending)
+        if (item.categories.includes(categoryFilter)) {
+            
+            // Link to the Viewer page with ID parameter
+            const link = `roadmap_viewer.html?id=${key}`;
+            
+            const html = `
+                <a href="${link}" class="roadmap-category-box ${bgClass}" style="text-decoration:none;">
+                    <div class="content-wrapper">
+                        <h2 class="category-title" style="font-size: 1.5rem;">${item.title}</h2>
+                        <p class="category-description">${item.description}</p>
+                    </div>
+                </a>
+            `;
+            container.innerHTML += html;
+        }
+    }
+}
+
+// 2. Render the Timeline (used by viewer page)
+function loadRoadmapTimeline(roadmapId) {
+    const data = roadmapData[roadmapId];
+    if(!data) return;
+
+    document.getElementById('roadmap-title').innerText = data.title;
+    document.getElementById('roadmap-desc').innerText = data.description;
+
+    const container = document.getElementById('timeline-container');
+    
+    // Optimised Rendering
+    const allStepsHTML = data.steps.map(step => {
+        const storageKey = `masar_progress_${roadmapId}_${step.id}`;
+        const isCompleted = localStorage.getItem(storageKey) === 'true';
+
+        const resourcesHTML = step.resources.map(res => {
+            const isVideo = res.type === 'video';
+            const icon = isVideo ? '▶️' : '📄'; 
+            const cssClass = isVideo ? 'res-video' : 'res-article';
+            return `
+                <a href="${res.url}" target="_blank" class="resource-item ${cssClass}">
+                    <span class="res-icon">${icon}</span>
+                    <span class="res-title">${res.title}</span>
+                </a>
+            `;
+        }).join('');
+
+        return `
+            <div class="timeline-step ${isCompleted ? 'completed' : ''}" id="step-${step.id}">
+                <div class="timeline-marker"></div>
+                <div class="step-card">
+                    <div class="step-header">
+                        <h3>${step.title}</h3>
+                        <input type="checkbox" class="progress-checkbox" 
+                            ${isCompleted ? 'checked' : ''} 
+                            onchange="toggleStepProgress('${roadmapId}', '${step.id}', this)">
+                    </div>
+                    <p class="step-desc">${step.desc}</p>
+                    <div class="resources-list">
+                        ${resourcesHTML}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = allStepsHTML;
 }
