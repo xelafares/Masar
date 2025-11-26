@@ -1,0 +1,49 @@
+<aside id="job-filter-sidebar" class="filters-hidden">
+    <div class="filter-header">
+        <h2>Filters</h2>
+        <button id="close-filter-btn">X</button>
+    </div>
+    
+    <div class="filter-group">
+        <h3>Tech Stack</h3>
+        <div class="checkbox-list">
+            <label><input type="checkbox" name="tech" value="react"> React</label>
+            <label><input type="checkbox" name="tech" value="typescript"> TypeScript</label>
+            <label><input type="checkbox" name="tech" value="node"> Node.js</label>
+            <label><input type="checkbox" name="angular"> Angular</label>
+            <label><input type="checkbox" name="vue"> Vue.js</label>
+            <label><input type="checkbox" name="python"> Python</label>
+            <label><input type="checkbox" name="java"> Java</label>
+            <label><input type="checkbox" name="go"> Go (Golang)</label>
+            <label><input type="checkbox" name="c#"> C# / .NET</label>
+            <label><input type="checkbox" name="aws"> AWS</label>
+            <label><input type="checkbox" name="azure"> Azure</label>
+            <label><input type="checkbox" name="gcp"> GCP</label>
+            <label><input type="checkbox" name="docker"> Docker</label>
+            <label><input type="checkbox" name="kubernetes"> Kubernetes</label>
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <h3>Salary Range (USD)</h3>
+        <div class="salary-control">
+            <input type="range" id="salary-slider" min="0" max="300000" value="0" step="1000">
+            <input type="number" id="salary-input" min="0" max="300000" value="0" step="1000" class="salary-input-box">
+        </div>
+        <p class="salary-min-max">Min: $0 - Max: $300,000+</p>
+    </div>
+
+    <div class="filter-group">
+        <h3>Posted Date Limit</h3>
+        <select id="posted-date-filter" class="date-select-box">
+            <option value="all">Anytime</option>
+            <option value="1d">Last 24 Hours</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="14d">Last 14 Days</option>
+            <option value="30d">Last 30 Days</option>
+        </select>
+    </div>
+
+    <button class="classic-button apply-filters">Apply Filters</button>
+    <button class="clear-filters">Clear Filters</button>
+</aside>

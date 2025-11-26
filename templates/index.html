@@ -11,35 +11,58 @@
     <div id="header"></div>
 
     <main>
-        
-        <div class="main-container">
+        <section class="welcome-section">
+            <h1 id="welcome-message">Welcome to Masar!</h1>
+            <p class="hero-subtitle">Your personalized journey to finding your next career starts here. Let's find your path today.</p>
+        </section>
 
-            <section class="hero">
-                <h1>Finding Jobs Made Easy</h1>
-                <p>Take your career to the next level.</p>
-                <a href="job.html" class="classic-button">View Jobs</a>
-            </section>
+        <section class="quick-access">
+            <h2>Quick Navigation</h2>
+            <div class="quick-access-buttons">
+                <a href="job.html" class="quick-button primary-btn">
+                    <span>🚀 View Open Jobs</span>
+                    <p>Search over 10,000 global opportunities.</p>
+                </a>
+                <a href="roadmap.html" class="quick-button secondary-btn">
+                    <span>🗺️ Explore Roadmaps</span>
+                    <p>Follow structured guides to master new skills.</p>
+                </a>
+                <a href="bookmarks.html" id="bookmarks-button" class="quick-button tertiary-btn hidden">
+                    <span>⭐ My Bookmarks</span>
+                    <p>Review your saved jobs and roadmaps.</p>
+                </a>
+            </div>
+        </section>
 
-            <section class="features">
+        <section class="features-summary">
+            <h2>Why Choose Masar?</h2>
+            <div class="features">
                 <div class="feature-card">
+                    <img src="../static/images/search.png" alt="Find Jobs Icon" class="feature-icon">
                     <h2>Find Jobs</h2>
-                    <p>Browse open positions all over the world.</p>
+                    <p>Browse open positions all over the world with advanced filtering.</p>
                 </div>
                 <div class="feature-card">
-                    <h2>Track Progress</h2>
-                    <p>Follow our step-by-step guides using our Roadmaps.</p>
+                    <img src="../static/images/direction.png" alt="Track Progress Icon" class="feature-icon">
+                    <h2>Master Your Path</h2>
+                    <p>Follow our step-by-step guides using our curated Roadmaps.</p>
                 </div>
                 <div class="feature-card">
-                    <h2>Get Hired</h2>
-                    <p>Connect with top employers directly.</p>
+                    <img src="../static/images/connect.png" alt="Get Hired Icon" class="feature-icon">
+                    <h2>Connect & Get Hired</h2>
+                    <p>Connect with top employers and fast-track your application process.</p>
                 </div>
-            </section>
-
-        </div>
+            </div>
+        </section>
         
-        </main>
+        <section class="about-callout content-box-segment">
+            <h2>Learn More About Us</h2>
+            <p>Masar is dedicated to making career progression transparent and accessible for everyone.</p>
+            <a href="about.html" class="secondary-button">Discover Our Story</a>
+        </section>
+    </main>
 
-    <div id="footer"></footer>
+    <div id="footer"></div>
 
     <script src="../static/js/script.js"></script>
 </body>
