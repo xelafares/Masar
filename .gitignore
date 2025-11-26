@@ -1,3 +1,9 @@
 venv/
 __pycache__/
 .DS_Store
+
+
+WebScraper/.venv/
+WebScraper__pycache__/
+WebScraper*.db
+WebScraper*.pyc
