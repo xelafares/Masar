@@ -1,20 +1,65 @@
-//const token = localStorage.getItem("token"); for when fast api is implemented
-
-document.addEventListener("DOMContentLoaded", function() {
-    renderHeader();
-    renderFooter();
+document.addEventListener("DOMContentLoaded", async function() {
+    checkPageAccess(); 
+    await renderHeader();
+    await renderFooter();
     highlightActiveLink();
     updateHomePageContent(); 
     setupBookmarkToggle(); 
     renderJobFilter();
     setupSmartScroll();
     setupFilterToggleButtons(); 
-    checkInitialDarkMode(); // NEW: Check dark mode status on load
+    checkInitialDarkMode();
 });
 
-let isLoggedIn = true; // Setting this to true for development/demonstration purposes
+let isLoggedIn = true;
 
-// NEW: Toggle Dark Mode function
+function checkPageAccess() {
+    const currentPath = window.location.pathname.split("/").pop();
+    
+    // List of pages that require login
+    const restrictedPages = [
+        "job.html", 
+        "roadmap.html", 
+        "roadmap_roles.html", 
+        "roadmap_skills.html", 
+        "roadmap_trending.html", 
+        "roadmap_viewer.html",
+        "bookmarks.html",
+        "profile.html"
+    ];
+
+    if (restrictedPages.includes(currentPath) && !isLoggedIn) {
+        showAuthLockModal();
+    }
+}
+
+function showAuthLockModal() {
+    const overlay = document.createElement('div');
+    overlay.className = 'auth-lock-overlay';
+    
+    document.body.style.overflow = 'hidden';
+
+    overlay.innerHTML = `
+        <div class="auth-lock-modal">
+            <div class="logos-container" style ="display: center; align-items: center; margin-bottom: 50px;">
+                <img src="../static/images/blacklogo.png" alt="Masar Logo" class="logo-img" style="height: 40px; margin-right: 10px;">
+                <img src="../static/images/blacklogotext.png" alt="Masar Logo" class="logo-img" style="height: 40px; align-items: center;">
+            </div>
+            <h2>Unlock Your Potential</h2>
+            <p>Join Masar today to access thousands of jobs, personalized roadmaps, and track your career progress.</p>
+            
+            <a href="signup.html" class="auth-lock-btn auth-lock-join">Join Us Now</a>
+            
+            <p style="margin-bottom: 10px; margin-top: 50px; font-size: 0.9rem;">Already have an account?</p>
+            <a href="login.html" class="auth-lock-btn auth-lock-login">Log In</a>
+            
+            <a href="index.html" class="auth-home-link">← Back to Home</a>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+}
+
 function toggleDarkMode(force) {
     const body = document.body;
     let isDark;
@@ -25,70 +70,71 @@ function toggleDarkMode(force) {
         isDark = !body.classList.contains('dark-mode');
     }
 
-    // Toggle the class on the body
     if (isDark) {
         body.classList.add('dark-mode');
     } else {
         body.classList.remove('dark-mode');
     }
 
-    // Save preference to localStorage
     localStorage.setItem('darkModeEnabled', isDark ? 'true' : 'false');
 
-    // Ensure the switch state matches the class (needed when clicking the nav switch)
     const switchInput = document.getElementById('darkModeToggle');
     if (switchInput) {
         switchInput.checked = isDark;
     }
 }
 
-// NEW: Check Dark Mode status when the page loads (affects non-homepage pages)
 function checkInitialDarkMode() {
     const isDark = localStorage.getItem('darkModeEnabled') === 'true';
     const currentPath = window.location.pathname.split("/").pop();
     const isHomePage = currentPath === "index.html" || currentPath === "";
 
-    // Dark mode is only applied outside the homepage initially
     if (isDark && !isHomePage) {
         toggleDarkMode(true);
     }
+    
+    if (isDark) {
+        const switchInput = document.getElementById('darkModeToggle');
+        if (switchInput) switchInput.checked = true;
+    }
 }
-
 
 function updateHomePageContent() {
     let username = "Alex";
     const welcomeMessage = document.getElementById("welcome-message");
-    const bookmarksButton = document.getElementById("bookmarks-button");
+    
+    const bookmarksBtn = document.getElementById("bookmarks-button");
+    const profileBtn = document.getElementById("profile-button");
+    const joinBtn = document.getElementById("join-button");
 
     if (welcomeMessage) {
         if (isLoggedIn) {
-            // Using strong tag instead of bold tag for semantic HTML
             welcomeMessage.innerHTML = `Welcome back, <strong>${username}</strong>!`;
-            // Show the bookmarks button in the quick access section
-            if (bookmarksButton) {
-                bookmarksButton.classList.remove("hidden");
-            }
+            
+            if (bookmarksBtn) bookmarksBtn.classList.remove("hidden");
+            if (profileBtn) profileBtn.classList.remove("hidden");
+            
+            if (joinBtn) joinBtn.classList.add("hidden");
+
         } else {
             welcomeMessage.innerHTML = `Welcome to Masar!`;
-            // Ensure bookmarks button is hidden if logged out
-            if (bookmarksButton) {
-                bookmarksButton.classList.add("hidden");
-            }
+            
+            if (bookmarksBtn) bookmarksBtn.classList.add("hidden");
+            if (profileBtn) profileBtn.classList.add("hidden");
+
+            if (joinBtn) joinBtn.classList.remove("hidden");
         }
     }
 }
 
 async function renderJobFilter() {
-    // Check for filter containers on both job.html and bookmarks.html
     const jobFilterContainer = document.getElementById("job-filter"); 
     const bookmarksFilterContainer = document.getElementById("bookmarks-filter");
     
-    // Determine which container (if any) to render the filter into
     const filterContainer = jobFilterContainer || bookmarksFilterContainer;
     if (!filterContainer) return;
 
     try {
-        // Assume job_filter.html is in the same directory as job.html for this fetch path
         const response = await fetch("job_filter.html"); 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -96,7 +142,6 @@ async function renderJobFilter() {
         const filterHTML = await response.text();
         filterContainer.innerHTML = filterHTML;
         
-        // IMPORTANT: Setup event listeners only AFTER the HTML is loaded
         setupFilterSidebar();
 
     } catch (error) {
@@ -104,188 +149,90 @@ async function renderJobFilter() {
     }
 }
 
-//implement search functionality later
+async function renderHeader() {
+    const headerContainer = document.getElementById("header");
+    if (!headerContainer) return;
 
-// async function performSearch(query) {
-//     if (!query) return;
+    try {
+        const response = await fetch("header.html");
+        if (!response.ok) throw new Error("Failed to load header");
+        const headerHTML = await response.text();
+        headerContainer.innerHTML = headerHTML;
 
-//     console.log(`Searching for: ${query}...`);
-
-//     try {
-//         const response = await fetch(`http://localhost:8000/search?q=${query}`);
-//         const data = await response.json();
-//         console.log("Results found:", data.results);
+        // Dynamic Logic Insertion
+        const isDarkInitial = localStorage.getItem('darkModeEnabled') === 'true';
         
-//         // Redirect to a results page with the data in the URL
-//         window.location.href = `search_results.html?q=${query}`;
-
-//     } catch (error) {
-//         console.error("Search failed:", error);
-//     }
-// }
-
-function renderHeader() {
-    const header = document.getElementById("header");
-    let userSection = '';
-    let bookmarks = '';
-    
-    // Determine initial switch state
-    const isDarkInitial = localStorage.getItem('darkModeEnabled') === 'true';
-    
-    // Dark mode switch HTML using IMG tags for custom icons as requested
-    const darkModeSwitch = `
-        <div class="dark-mode-toggle-container" title="Toggle Light/Dark Mode">
-            <input type="checkbox" class="switch-checkbox" id="darkModeToggle" ${isDarkInitial ? 'checked' : ''} onchange="toggleDarkMode()">
-            <label for="darkModeToggle" class="switch-label">
-                <img src="../static/images/sun.png" class="toggle-icon sun-icon" alt="Light Mode">
-                <img src="../static/images/moon.png" class="toggle-icon moon-icon" alt="Dark Mode">
-                <span class="ball"></span>
-            </label>
-        </div>
-    `;
-
-    if (isLoggedIn) {
-        userSection = `
-        <div class="user-menu">
-            ${darkModeSwitch}
-            <a href="profile.html" class="profile-btn">
-                <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile" class="profile-img">
-            </a>
-            
-            <a href="#" onclick="logout(event)" class="logout-btn" title="Logout">
-                <img src="../static/images/logout.png" alt="Logout" class="logout-icon">
-            </a>
-        </div>
-        `;
-        bookmarks = `<li><a href="bookmarks.html">Bookmarks</a></li>`;
-    }
-
-    else{
-        userSection = `
-            <div class="user-menu">
-                ${darkModeSwitch}
-                <a href="login.html" class="login-btn">Login</a>
-                <a href="login.html" class="join-btn">Join Us</a>
+        // Common Dark Mode Toggle HTML
+        const darkModeSwitch = `
+            <div class="dark-mode-toggle-container" title="Toggle Light/Dark Mode">
+                <input type="checkbox" class="switch-checkbox" id="darkModeToggle" ${isDarkInitial ? 'checked' : ''} onchange="toggleDarkMode()">
+                <label for="darkModeToggle" class="switch-label">
+                    <img src="../static/images/sun.png" class="toggle-icon sun-icon" alt="Light Mode">
+                    <img src="../static/images/moon.png" class="toggle-icon moon-icon" alt="Dark Mode">
+                    <span class="ball"></span>
+                </label>
             </div>
         `;
-    }
 
-    const headerHTML = `
-    <header>
-        <nav>
-            <div class="logo-container">
-                <a href="index.html">
-                    <img src="../static/images/whitelogotext.png" alt="Logo" class="logo-img">
-                </a>
-            </div>
-            
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="job.html">Jobs</a></li>
-                <li><a href="roadmap.html">Roadmaps</a></li>
-                ${bookmarks}
-                <li><a href="about.html">About Us</a></li>
-            </ul>
+        const userMenuContainer = document.getElementById("user-menu-container");
+        const bookmarksContainer = document.getElementById("nav-bookmarks-container");
 
-            <div class="search-container">
-                <input type="text" placeholder="What are you looking for?" class="search-input">
-                <button class="search-btn">
-                    <img src="../static/images/search.png" alt="Search" class="search-icon">
-                </button>
-            </div>
-
-            ${userSection}
-
-        </nav>
-    </header>
-    `;
-
-    if (header) {
-        header.innerHTML = headerHTML;
-    }
-}
-
-function renderFooter() {
-    const footer = document.getElementById("footer");
-    const footerHTML = `
-    <footer>
-        <div class="footer-top">
-            
-            <div class="footer-element">
-                <img src="../static/images/whitelogo.png" alt="Masar Logo" class="logo-img" style="height: 50px; margin-bottom: 20px;">
-                
-                <p>Masar is a career and skill development platform designed to guide you through your professional journey. We offer structured roadmaps, job listings, and community support.</p>
-                
-                <div class="social-links">
-                    <a href="https://github.com/xelafares/Masar" target="_blank" class="github-link" title="GitHub Repository">
-                        <img src="../static/images/github.png" alt="GitHub Logo" class="github-icon-img">
+        if (isLoggedIn) {
+            // Render Logged In Menu
+            if (userMenuContainer) {
+                userMenuContainer.innerHTML = `
+                    ${darkModeSwitch}
+                    <a href="profile.html" class="profile-btn">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile" class="profile-img">
                     </a>
-                    <a href="https://www.linkedin.com/in/yousef-ahmed-b75592370" target="_blank" title="LinkedIn Profile 1">
-                        <img src="../static/images/linkedin.png" alt="LinkedIn" class="social-icon">
+                    <a href="#" onclick="logout(event)" class="logout-btn" title="Logout">
+                        <img src="../static/images/logout.png" alt="Logout" class="logout-icon">
                     </a>
-                    <a href="https://www.linkedin.com/in/faressarhan/" target="_blank" title="LinkedIn Profile 2">
-                        <img src="../static/images/linkedin.png" alt="LinkedIn" class="social-icon">
-                    </a>
-                    <img src="../static/images/x.png" alt="Twitter/X" class="social-icon">
-                    <!-- <a href="" title="Twitter/X">
-                        <img src="../static/images/x.png" alt="Twitter/X" class="social-icon"> 
-                    </a> -->
-                </div>
-            </div>
+                `;
+            }
+            // Render Bookmarks Link
+            if (bookmarksContainer) {
+                bookmarksContainer.innerHTML = `<li><a href="bookmarks.html">Bookmarks</a></li>`;
+            }
+        } else {
+            // Render Logged Out Menu
+            if (userMenuContainer) {
+                userMenuContainer.innerHTML = `
+                    ${darkModeSwitch}
+                    <a href="login.html" class="login-btn">Login</a>
+                    <a href="signup.html" class="join-btn">Join Us</a>
+                `;
+            }
+            // Clear Bookmarks Link
+            if (bookmarksContainer) {
+                bookmarksContainer.innerHTML = '';
+            }
+        }
 
-            <div class="footer-element">
-                <h3>CONTACT US</h3>
-                <div class="contact-info-group">
-                    <img src="../static/images/mail.png" alt="Email Icon" class="contact-icon">
-                    <a href="mailto:MasarSalesTeam@gmail.com">MasarSalesTeam@gmail.com</a>
-                </div>
-                <div class="contact-info-group">
-                    <img src="../static/images/phone.png" alt="Phone Icon" class="contact-icon">
-                    <p>a number?</p>
-                </div>
-                <div class="contact-info-group" style="align-items: flex-start;">
-                    <img src="../static/images/home.png" alt="Location Icon" class="contact-icon" style="margin-top: 2px;">
-                    <p style="margin: 0; line-height: 1.4;">Proudly made and based in Cairo, Egypt.</p>
-                </div>
-            </div>
-
-            <div class="footer-element">
-                <h3>SUBSCRIBE TO OUR NEWSLETTER</h3>
-                <p>Join our subscribers list to get the latest news, updates and special offers delivered directly in your inbox.</p>
-                <form class="subscribe-form" onsubmit="return false;">
-                    <input type="email" placeholder="Enter your email here" required>
-                    <button type="submit">Join</button>
-                </form>
-            </div>
-
-        </div>
-
-        <div class="footer-bottom">
-            <p class="copyright-text">&copy; 2025 Masar. All rights reserved.</p>
-            <div class="footer-secondary-links">
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Use</a>
-            </div>
-        </div>
-    </footer>
-    `;
-
-    if (footer) {
-        footer.innerHTML = footerHTML;
+    } catch (error) {
+        console.error("Error loading header:", error);
     }
 }
 
-function logout() {
-    //localStorage.removeItem("token"); for when fast api is implemented
-    window.location.href = "index.html";
+async function renderFooter() {
+    const footerContainer = document.getElementById("footer");
+    if (!footerContainer) return;
+
+    try {
+        const response = await fetch("footer.html");
+        if (!response.ok) throw new Error("Failed to load footer");
+        const footerHTML = await response.text();
+        footerContainer.innerHTML = footerHTML;
+    } catch (error) {
+        console.error("Error loading footer:", error);
+    }
 }
 
-// wasn't me LMAO (Removed the unnecessary empty addEventListener block)
 function highlightActiveLink() {
     const currentPath = window.location.pathname.split("/").pop(); 
     const navLinks = document.querySelectorAll(".nav-links a");
     const header = document.querySelector("header"); 
-    const body = document.body; // NEW: Get body reference
+    const body = document.body;
 
     navLinks.forEach(link => {
         const linkPath = link.getAttribute("href");
@@ -294,20 +241,16 @@ function highlightActiveLink() {
         }
     });
 
-    // LOGIC: Make header solid purple on all pages EXCEPT index.html
     if (header) {
         const isHomePage = currentPath === "index.html" || currentPath === "";
         
         if (!isHomePage) {
             header.classList.add("solid-header");
-            
-            // NEW: Apply dark mode class instantly if preference is set (affects non-home pages)
             if (localStorage.getItem('darkModeEnabled') === 'true') {
                  body.classList.add('dark-mode');
             }
         } else {
             header.classList.remove("solid-header");
-            // NEW: Ensure dark mode class is removed on homepage
             body.classList.remove('dark-mode'); 
         }
     }
@@ -315,8 +258,6 @@ function highlightActiveLink() {
 
 function setupBookmarkToggle() {
     const jobListings = document.querySelectorAll('.job-listing');
-    
-    // Assuming you have bookmark_empty.png and bookmark_full.png in ../static/images/
     const emptyIconPath = '../static/images/bookmark_empty.png';
     const fullIconPath = '../static/images/bookmark_full.png';
 
@@ -329,19 +270,13 @@ function setupBookmarkToggle() {
                 let isBookmarked = this.getAttribute('data-bookmarked') === 'true';
 
                 if (isBookmarked) {
-                    // Unbookmark it
                     this.setAttribute('data-bookmarked', 'false');
                     bookmarkIcon.src = emptyIconPath;
                     bookmarkIcon.alt = "Bookmark";
-                    // In a real app, you would send a request to remove the bookmark here
-                    // console.log(`Job ${listing.getAttribute('data-job-id')} unbookmarked.`);
                 } else {
-                    // Bookmark it
                     this.setAttribute('data-bookmarked', 'true');
                     bookmarkIcon.src = fullIconPath;
                     bookmarkIcon.alt = "Bookmarked";
-                    // In a real app, you would send a request to save the bookmark here
-                    // console.log(`Job ${listing.getAttribute('data-job-id')} bookmarked.`);
                 }
             });
         }
@@ -354,15 +289,13 @@ function setupFilterToggleButtons() {
 
     if (!filterToggleBtn) return;
     
-    // This handler will toggle the visibility of the sidebar and the overlay/blur effect.
     filterToggleBtn.addEventListener('click', () => {
         const actualSidebar = document.getElementById('job-filter-sidebar');
-        const overlay = document.querySelector('.filter-overlay'); // Get overlay each time
+        const overlay = document.querySelector('.filter-overlay'); 
         if (!actualSidebar) return; 
 
         const isVisible = actualSidebar.classList.contains('filters-visible');
         
-        // Manual toggle logic
         if (!isVisible) {
             actualSidebar.classList.add('filters-visible');
             body.classList.add('filter-open');
@@ -375,16 +308,13 @@ function setupFilterToggleButtons() {
     });
 }
 
-
 function setupFilterSidebar() {
     const filterSidebar = document.getElementById('job-filter-sidebar');
-    // NOTE: The main toggle buttons are now handled by setupFilterToggleButtons
     const closeFilterBtn = document.getElementById('close-filter-btn');
     const salarySlider = document.getElementById('salary-slider');
     const salaryInput = document.getElementById('salary-input');
     const body = document.body;
     
-    // NEW: Create and manage a fixed overlay element for dimming
     let overlay = document.querySelector('.filter-overlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -392,7 +322,6 @@ function setupFilterSidebar() {
         document.body.appendChild(overlay);
     }
 
-    // This logic handles closing the sidebar via the 'X' button or the overlay click
     if (filterSidebar && closeFilterBtn) {
         closeFilterBtn.addEventListener('click', () => {
             filterSidebar.classList.remove('filters-visible');
@@ -400,7 +329,6 @@ function setupFilterSidebar() {
             overlay.classList.remove('active');
         });
 
-        // Close on outside click using the overlay
         overlay.addEventListener('click', () => {
             if (filterSidebar.classList.contains('filters-visible')) {
                 filterSidebar.classList.remove('filters-visible');
@@ -410,7 +338,6 @@ function setupFilterSidebar() {
         });
     }
     
-    // Salary slider synchronization
     if (salarySlider && salaryInput) {
         salarySlider.addEventListener('input', () => {
             salaryInput.value = salarySlider.value;
@@ -429,7 +356,6 @@ function setupFilterSidebar() {
     }
 }
 
-/* Smart Scroll Logic for Header */
 let lastScrollY = window.scrollY;
 
 function setupSmartScroll() {
@@ -440,19 +366,14 @@ function setupSmartScroll() {
         const currentPath = window.location.pathname.split("/").pop();
         const isHomePage = currentPath === "index.html" || currentPath === "";
 
-        // 1. OPAQUE/TRANSPARENT LOGIC (Only runs on the homepage)
         if (isHomePage) {
             if (window.scrollY > 5) {
-                // If scrolled down at all, make it opaque
                 header.classList.add("scrolling-opaque");
             } else {
-                // If at the very top, make it transparent
                 header.classList.remove("scrolling-opaque");
             }
         }
 
-        // 2. HIDE/SHOW LOGIC 
-        // Only hide the header if we're scrolling down AND we've scrolled past the top 50px
         if (window.scrollY > lastScrollY && window.scrollY > 50) {
             header.classList.add("hide");
         } else {
@@ -462,8 +383,6 @@ function setupSmartScroll() {
         lastScrollY = window.scrollY;
     });
 }
-
-/* --- ROADMAP LOGIC --- */
 
 let currentView = 'categories';
 
@@ -476,7 +395,6 @@ function showJobRoles(e) {
     const rolesView = document.getElementById('roles-view');
     rolesView.style.display = 'grid'; 
     
-    // Inject the available roles
     rolesView.innerHTML = `
         <div class="roadmap-category-box role-bg" onclick="loadRoadmap('frontend')" style="cursor:pointer; height:auto; padding-top:20%;">
             <div class="content-wrapper"><h3>Frontend Developer</h3></div>
@@ -489,33 +407,25 @@ function showJobRoles(e) {
 }
 
 function loadRoadmap(roadmapId) {
-    // 1. Get Static Content from roadmap_data.js
     const data = roadmapData[roadmapId];
     if(!data) return;
 
-    // 2. Switch Views
     document.getElementById('roles-view').style.display = 'none';
     const timelineView = document.getElementById('timeline-view');
     timelineView.style.display = 'block';
 
-    // 3. Populate Header
     document.getElementById('roadmap-title').innerText = data.title;
     document.getElementById('roadmap-desc').innerText = data.description;
 
     const container = document.getElementById('timeline-container');
     container.innerHTML = ''; 
 
-    // 4. Generate Steps
     data.steps.forEach(step => {
-        // --- READ PROGRESS FROM LOCAL STORAGE ---
-        // We create a unique key: user_roadmapID_stepID
         const storageKey = `masar_progress_${roadmapId}_${step.id}`;
         const isCompleted = localStorage.getItem(storageKey) === 'true';
 
-        // Build Resources Links
         const resourcesHTML = step.resources.map(res => {
             const isVideo = res.type === 'video';
-            // Use distinct emojis or icons for visual learners
             const icon = isVideo ? '▶️' : '📄'; 
             const cssClass = isVideo ? 'res-video' : 'res-article';
             return `
@@ -526,7 +436,6 @@ function loadRoadmap(roadmapId) {
             `;
         }).join('');
 
-        // Build the HTML card
         const stepHTML = `
             <div class="timeline-step ${isCompleted ? 'completed' : ''}" id="step-${step.id}">
                 <div class="timeline-marker"></div>
@@ -555,11 +464,9 @@ function toggleStepProgress(roadmapId, stepId, checkbox) {
     const stepDiv = document.getElementById(`step-${stepId}`);
 
     if (checkbox.checked) {
-        // SAVE to LocalStorage
         localStorage.setItem(storageKey, 'true');
         stepDiv.classList.add('completed');
     } else {
-        // REMOVE from LocalStorage
         localStorage.removeItem(storageKey);
         stepDiv.classList.remove('completed');
     }
@@ -577,23 +484,17 @@ function goBack() {
     }
 }
 
-/* --- NEW ROADMAP FUNCTIONS --- */
-
-// 1. Render the Grid of Boxes (used by roles, skills, trending pages)
 function renderGrid(categoryFilter, containerId, bgClass) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
     container.innerHTML = '';
     
-    // Loop through all data
     for (const key in roadmapData) {
         const item = roadmapData[key];
         
-        // If the item belongs to this category (role/skill/trending)
         if (item.categories.includes(categoryFilter)) {
             
-            // Link to the Viewer page with ID parameter
             const link = `roadmap_viewer.html?id=${key}`;
             
             const html = `
@@ -609,7 +510,6 @@ function renderGrid(categoryFilter, containerId, bgClass) {
     }
 }
 
-// 2. Render the Timeline (used by viewer page)
 function loadRoadmapTimeline(roadmapId) {
     const data = roadmapData[roadmapId];
     if(!data) return;
@@ -619,7 +519,6 @@ function loadRoadmapTimeline(roadmapId) {
 
     const container = document.getElementById('timeline-container');
     
-    // Optimised Rendering
     const allStepsHTML = data.steps.map(step => {
         const storageKey = `masar_progress_${roadmapId}_${step.id}`;
         const isCompleted = localStorage.getItem(storageKey) === 'true';
