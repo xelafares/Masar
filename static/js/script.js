@@ -4,19 +4,50 @@ document.addEventListener("DOMContentLoaded", async function() {
     await renderFooter();
     highlightActiveLink();
     updateHomePageContent(); 
-    setupBookmarkToggle(); 
-    renderJobFilter();
+    setupBookmarkToggle();
+    await renderJobFilter();
     setupSmartScroll();
     setupFilterToggleButtons(); 
     checkInitialDarkMode();
+    
+    if (document.getElementById("profile-info-form")) {
+        loadProfileData();
+    }
+
+    if (document.getElementById("job-listings-container")) {
+        filterAndRenderJobs();
+    }
 });
 
-let isLoggedIn = true;
+let isLoggedIn = true; 
+
+function showToast(message, type = 'success') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+        // Clean up container if empty
+        if (container.children.length === 0) {
+            container.remove();
+        }
+    }, 3500);
+}
 
 function checkPageAccess() {
     const currentPath = window.location.pathname.split("/").pop();
     
-    // List of pages that require login
     const restrictedPages = [
         "job.html", 
         "roadmap.html", 
@@ -60,6 +91,7 @@ function showAuthLockModal() {
     document.body.appendChild(overlay);
 }
 
+/* --- DARK MODE LOGIC --- */
 function toggleDarkMode(force) {
     const body = document.body;
     let isDark;
@@ -99,8 +131,9 @@ function checkInitialDarkMode() {
     }
 }
 
+/* --- HOME PAGE LOGIC --- */
 function updateHomePageContent() {
-    let username = "Alex";
+    let username = localStorage.getItem("masar_username") || "User";
     const welcomeMessage = document.getElementById("welcome-message");
     
     const bookmarksBtn = document.getElementById("bookmarks-button");
@@ -127,28 +160,125 @@ function updateHomePageContent() {
     }
 }
 
-async function renderJobFilter() {
-    const jobFilterContainer = document.getElementById("job-filter"); 
-    const bookmarksFilterContainer = document.getElementById("bookmarks-filter");
+/* --- JOB RENDERING & FILTERING --- */
+
+function filterAndRenderJobs() {
+    const container = document.getElementById("job-listings-container");
+    if (!container || typeof jobsData === 'undefined') return;
+
+    const salaryMin = parseInt(document.getElementById("salary-input")?.value) || 0;
     
-    const filterContainer = jobFilterContainer || bookmarksFilterContainer;
-    if (!filterContainer) return;
+    const techCheckboxes = document.querySelectorAll('input[name="tech"]:checked');
+    const selectedTech = Array.from(techCheckboxes).map(cb => cb.value.toLowerCase());
+    
+    const dateFilter = document.getElementById("posted-date-filter")?.value || "all";
+    const sortBy = document.getElementById("sort-by")?.value || "relevance";
 
-    try {
-        const response = await fetch("job_filter.html"); 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    let filteredJobs = jobsData.filter(job => {
+        if (job.salaryMax < salaryMin) return false;
+
+        if (selectedTech.length > 0) {
+            const jobTech = job.techStack.map(t => t.toLowerCase());
+            const hasMatch = selectedTech.some(tech => jobTech.includes(tech));
+            if (!hasMatch) return false;
         }
-        const filterHTML = await response.text();
-        filterContainer.innerHTML = filterHTML;
-        
-        setupFilterSidebar();
 
-    } catch (error) {
-        console.error("Failed to load job filter:", error);
+        if (dateFilter !== "all") {
+            const jobDate = new Date(job.postedDate);
+            const now = new Date();
+            const diffTime = Math.abs(now - jobDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            if (dateFilter === "1d" && diffDays > 1) return false;
+            if (dateFilter === "7d" && diffDays > 7) return false;
+            if (dateFilter === "14d" && diffDays > 14) return false;
+            if (dateFilter === "30d" && diffDays > 30) return false;
+        }
+
+        return true;
+    });
+
+    if (sortBy === "salary-high") {
+        filteredJobs.sort((a, b) => b.salaryMax - a.salaryMax);
+    } else if (sortBy === "salary-low") {
+        filteredJobs.sort((a, b) => a.salaryMin - b.salaryMin);
+    } else if (sortBy === "date") {
+        filteredJobs.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
+    }
+
+    container.innerHTML = "";
+    
+    if (filteredJobs.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-color-secondary);"><h3>No jobs found matching your criteria.</h3></div>`;
+        return;
+    }
+
+    filteredJobs.forEach(job => {
+        const tagsHtml = job.techStack.map((tech, index) => 
+            `<span class="tech-tag ${index === 0 ? 'primary-tech' : ''}">${tech}</span>`
+        ).join('');
+
+        const jobDate = new Date(job.postedDate);
+        const daysAgo = Math.floor((new Date() - jobDate) / (1000 * 60 * 60 * 24));
+        const dateText = daysAgo === 0 ? "Today" : `${daysAgo} days ago`;
+
+        const bookmarkIcon = job.bookmarked ? '../static/images/bookmark_full.png' : '../static/images/bookmark_empty.png';
+
+        const html = `
+            <article class="job-listing" data-job-id="${job.id}">
+                <div class="job-image-container">
+                    <img src="${job.logo}" alt="${job.company} Logo" class="company-logo">
+                </div>
+                
+                <div class="job-details">
+                    <div class="job-header">
+                        <h2 class="job-title">${job.title}</h2>
+                        <button class="bookmark-btn" data-bookmarked="${job.bookmarked}" onclick="toggleJobBookmark(${job.id}, this)">
+                            <img src="${bookmarkIcon}" alt="Bookmark" class="bookmark-icon">
+                        </button>
+                    </div>
+
+                    <p class="company-name">${job.company}</p>
+                    
+                    <div class="tech-tag-container">
+                        ${tagsHtml}
+                    </div>
+                    <p class="salary job-meta">Salary: $${job.salaryMin.toLocaleString()} - $${job.salaryMax.toLocaleString()} / year</p>
+
+                    <p class="job-description">${job.description}</p>
+
+                    <div class="job-footer">
+                        <p class="posted-date">Posted: ${dateText}</p>
+                        <a href="#" class="apply-btn">View Listing</a>
+                    </div>
+                </div>
+            </article>
+        `;
+        container.innerHTML += html;
+    });
+}
+
+function toggleJobBookmark(id, btn) {
+    const isBookmarked = btn.getAttribute('data-bookmarked') === 'true';
+    const icon = btn.querySelector('img');
+    
+    if (isBookmarked) {
+        btn.setAttribute('data-bookmarked', 'false');
+        icon.src = '../static/images/bookmark_empty.png';
+        showToast("Job removed from bookmarks.", "success");
+    } else {
+        btn.setAttribute('data-bookmarked', 'true');
+        icon.src = '../static/images/bookmark_full.png';
+        showToast("Job saved to bookmarks!", "success");
+    }
+
+    if (typeof jobsData !== 'undefined') {
+        const job = jobsData.find(j => j.id === id);
+        if(job) job.bookmarked = !isBookmarked;
     }
 }
 
+/* --- HEADER & FOOTER LOADING --- */
 async function renderHeader() {
     const headerContainer = document.getElementById("header");
     if (!headerContainer) return;
@@ -159,10 +289,8 @@ async function renderHeader() {
         const headerHTML = await response.text();
         headerContainer.innerHTML = headerHTML;
 
-        // Dynamic Logic Insertion
         const isDarkInitial = localStorage.getItem('darkModeEnabled') === 'true';
         
-        // Common Dark Mode Toggle HTML
         const darkModeSwitch = `
             <div class="dark-mode-toggle-container" title="Toggle Light/Dark Mode">
                 <input type="checkbox" class="switch-checkbox" id="darkModeToggle" ${isDarkInitial ? 'checked' : ''} onchange="toggleDarkMode()">
@@ -178,24 +306,23 @@ async function renderHeader() {
         const bookmarksContainer = document.getElementById("nav-bookmarks-container");
 
         if (isLoggedIn) {
-            // Render Logged In Menu
             if (userMenuContainer) {
+                const savedAvatar = localStorage.getItem("masar_avatar") || "https://ui-avatars.com/api/?name=User&background=random";
+                
                 userMenuContainer.innerHTML = `
                     ${darkModeSwitch}
                     <a href="profile.html" class="profile-btn">
-                        <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile" class="profile-img">
+                        <img src="${savedAvatar}" alt="Profile" class="profile-img">
                     </a>
                     <a href="#" onclick="logout(event)" class="logout-btn" title="Logout">
                         <img src="../static/images/logout.png" alt="Logout" class="logout-icon">
                     </a>
                 `;
             }
-            // Render Bookmarks Link
             if (bookmarksContainer) {
                 bookmarksContainer.innerHTML = `<li><a href="bookmarks.html">Bookmarks</a></li>`;
             }
         } else {
-            // Render Logged Out Menu
             if (userMenuContainer) {
                 userMenuContainer.innerHTML = `
                     ${darkModeSwitch}
@@ -203,7 +330,6 @@ async function renderHeader() {
                     <a href="signup.html" class="join-btn">Join Us</a>
                 `;
             }
-            // Clear Bookmarks Link
             if (bookmarksContainer) {
                 bookmarksContainer.innerHTML = '';
             }
@@ -228,6 +354,26 @@ async function renderFooter() {
     }
 }
 
+/* --- AUTH ACTIONS --- */
+function handleLogin(e) {
+    if (e) e.preventDefault(); 
+    
+    const btn = e.target.querySelector('button');
+    if(btn) btn.innerText = "Processing...";
+    
+    setTimeout(() => {
+        localStorage.setItem("isLoggedIn", "true");
+        window.location.href = "index.html";
+    }, 1000);
+}
+
+function logout(e) {
+    if (e) e.preventDefault();
+    localStorage.removeItem("isLoggedIn");
+    window.location.href = "index.html";
+}
+
+/* --- NAVIGATION HIGHLIGHTING --- */
 function highlightActiveLink() {
     const currentPath = window.location.pathname.split("/").pop(); 
     const navLinks = document.querySelectorAll(".nav-links a");
@@ -256,6 +402,7 @@ function highlightActiveLink() {
     }
 }
 
+/* --- BOOKMARKS LOGIC (Static Pages) --- */
 function setupBookmarkToggle() {
     const jobListings = document.querySelectorAll('.job-listing');
     const emptyIconPath = '../static/images/bookmark_empty.png';
@@ -265,7 +412,7 @@ function setupBookmarkToggle() {
         const bookmarkBtn = listing.querySelector('.bookmark-btn');
         const bookmarkIcon = listing.querySelector('.bookmark-icon');
 
-        if (bookmarkBtn) {
+        if (bookmarkBtn && !bookmarkBtn.getAttribute('onclick')) {
             bookmarkBtn.addEventListener('click', function() {
                 let isBookmarked = this.getAttribute('data-bookmarked') === 'true';
 
@@ -281,6 +428,35 @@ function setupBookmarkToggle() {
             });
         }
     });
+}
+
+/* --- FILTER LOGIC (Toggle & Sidebar) --- */
+async function renderJobFilter() {
+    const jobFilterContainer = document.getElementById("job-filter"); 
+    const bookmarksFilterContainer = document.getElementById("bookmarks-filter");
+    
+    const filterContainer = jobFilterContainer || bookmarksFilterContainer;
+    if (!filterContainer) return;
+
+    try {
+        const response = await fetch("job_filter.html"); 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const filterHTML = await response.text();
+        filterContainer.innerHTML = filterHTML;
+        
+        setupFilterSidebar();
+        
+        const inputs = filterContainer.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            input.addEventListener('change', filterAndRenderJobs);
+            input.addEventListener('input', filterAndRenderJobs);
+        });
+
+    } catch (error) {
+        console.error("Failed to load job filter:", error);
+    }
 }
 
 function setupFilterToggleButtons() {
@@ -341,21 +517,42 @@ function setupFilterSidebar() {
     if (salarySlider && salaryInput) {
         salarySlider.addEventListener('input', () => {
             salaryInput.value = salarySlider.value;
+            filterAndRenderJobs(); 
         });
 
         salaryInput.addEventListener('input', () => {
             let value = parseInt(salaryInput.value);
             if (value >= salarySlider.min && value <= salarySlider.max) {
                 salarySlider.value = value;
-            } else if (value > salarySlider.max) {
-                 salarySlider.value = salarySlider.max;
-            } else if (value < salarySlider.min) {
-                 salarySlider.value = salarySlider.min;
+                filterAndRenderJobs();
             }
+        });
+    }
+    
+    const applyBtn = document.querySelector('.apply-filters');
+    if(applyBtn) {
+        applyBtn.addEventListener('click', () => {
+            filterAndRenderJobs();
+            filterSidebar.classList.remove('filters-visible');
+            body.classList.remove('filter-open');
+            overlay.classList.remove('active');
+        });
+    }
+    
+    const clearBtn = document.querySelector('.clear-filters');
+    if(clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            salarySlider.value = 0;
+            salaryInput.value = 0;
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById("posted-date-filter").value = "all";
+            
+            filterAndRenderJobs();
         });
     }
 }
 
+/* --- SCROLL LOGIC --- */
 let lastScrollY = window.scrollY;
 
 function setupSmartScroll() {
@@ -384,6 +581,7 @@ function setupSmartScroll() {
     });
 }
 
+/* --- ROADMAP FUNCTIONS --- */
 let currentView = 'categories';
 
 function showJobRoles(e) {
@@ -559,16 +757,13 @@ function loadRoadmapTimeline(roadmapId) {
 
 /* --- PROFILE PAGE LOGIC --- */
 
-// 1. Load Data on Page Init
 function loadProfileData() {
-    // Attempt to get data from LocalStorage, otherwise use defaults
     const storedName = localStorage.getItem("masar_username") || "User Name";
     const storedTitle = localStorage.getItem("masar_title") || "Aspiring Developer";
     const storedEmail = localStorage.getItem("masar_email") || "";
     const storedBio = localStorage.getItem("masar_bio") || "";
     const storedAvatar = localStorage.getItem("masar_avatar");
 
-    // Update Sidebar
     const sidebarName = document.getElementById("sidebar-username");
     const sidebarTitle = document.getElementById("sidebar-title");
     const avatarDisplay = document.getElementById("profile-avatar-display");
@@ -576,12 +771,10 @@ function loadProfileData() {
     if(sidebarName) sidebarName.innerText = storedName;
     if(sidebarTitle) sidebarTitle.innerText = storedTitle;
     
-    // If we have a saved base64 image, use it. Otherwise default.
     if(storedAvatar && avatarDisplay) {
         avatarDisplay.src = storedAvatar;
     }
 
-    // Update Form Inputs
     const inputName = document.getElementById("settings-username");
     const inputTitle = document.getElementById("settings-title");
     const inputEmail = document.getElementById("settings-email");
@@ -593,27 +786,24 @@ function loadProfileData() {
     if(inputBio) inputBio.value = storedBio;
 }
 
-// 2. Handle Image Upload Preview & Save
 function previewAvatar(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            // Update the image source immediately
             document.getElementById("profile-avatar-display").src = e.target.result;
-            
-            // Save to LocalStorage (Note: Base64 strings can be large, this is okay for small demos)
+
             localStorage.setItem("masar_avatar", e.target.result);
             
-            // Update header avatar if it exists
             const headerAvatar = document.querySelector(".profile-img");
             if(headerAvatar) headerAvatar.src = e.target.result;
+
+            showToast("Avatar updated successfully!", "success");
         };
         reader.readAsDataURL(file);
     }
 }
 
-// 3. Save Profile Info Form
 function saveProfileInfo(event) {
     event.preventDefault();
     
@@ -622,40 +812,41 @@ function saveProfileInfo(event) {
     const email = document.getElementById("settings-email").value;
     const bio = document.getElementById("settings-bio").value;
 
-    // Save to LocalStorage
+    if (!name || !title) {
+        showToast("Please provide at least a Username and Job Title.", "error");
+        return;
+    }
+
     localStorage.setItem("masar_username", name);
     localStorage.setItem("masar_title", title);
     localStorage.setItem("masar_email", email);
     localStorage.setItem("masar_bio", bio);
 
-    // Update UI elements immediately
     document.getElementById("sidebar-username").innerText = name;
     document.getElementById("sidebar-title").innerText = title;
 
-    // Update Welcome Message on Home if present
     const welcomeMsg = document.getElementById("welcome-message");
     if(welcomeMsg) {
         welcomeMsg.innerHTML = `Welcome back, <strong>${name}</strong>!`;
     }
+
+    showToast("Profile updated successfully!", "success");
 }
 
-// 4. Mock Password Change
 function changePassword(event) {
     event.preventDefault();
     const currentPass = document.getElementById("current-password").value;
     const newPass = document.getElementById("new-password").value;
 
     if(!currentPass || !newPass) {
-        alert("Please fill in both password fields.");
+        showToast("Please fill in both password fields.", "error");
         return;
     }
 
-    // In a real app, you would verify currentPass with the backend
     console.log("Password change requested.");
     
-    // Clear fields
     document.getElementById("current-password").value = "";
     document.getElementById("new-password").value = "";
     
-    alert("Password updated successfully!");
+    showToast("Password updated successfully!", "success");
 }
