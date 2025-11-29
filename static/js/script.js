@@ -1,26 +1,42 @@
+/* static/js/script.js */
+
 document.addEventListener("DOMContentLoaded", async function() {
+    // 1. Check Access immediately
     checkPageAccess(); 
+
+    // 2. Load Layout
     await renderHeader();
     await renderFooter();
+    
+    // 3. Initialize Logic
     highlightActiveLink();
     updateHomePageContent(); 
-    setupBookmarkToggle();
-    await renderJobFilter();
+    setupBookmarkToggle(); // For static pages
+    await renderJobFilter(); // Wait for filter HTML to load
     setupSmartScroll();
     setupFilterToggleButtons(); 
     checkInitialDarkMode();
     
+    // 4. Page Specific Initializations
     if (document.getElementById("profile-info-form")) {
         loadProfileData();
     }
 
     if (document.getElementById("job-listings-container")) {
+        // Render jobs if we are on the jobs page
         filterAndRenderJobs();
     }
 });
 
-let isLoggedIn = true; 
+// READ LOGIN STATUS FROM STORAGE (Persists across refresh)
+let isLoggedIn = localStorage.getItem("isLoggedIn") === "true"; 
 
+/* --- TOAST NOTIFICATION SYSTEM --- */
+/**
+ * Displays a custom popup message.
+ * @param {string} message - The text to display.
+ * @param {string} type - 'success' (green) or 'error' (red).
+ */
 function showToast(message, type = 'success') {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -36,18 +52,20 @@ function showToast(message, type = 'success') {
 
     container.appendChild(toast);
 
+    // Remove after animation (3s wait + 0.5s fade out = 3500ms)
     setTimeout(() => {
         toast.remove();
-        // Clean up container if empty
         if (container.children.length === 0) {
             container.remove();
         }
     }, 3500);
 }
 
+/* --- AUTHENTICATION CHECKER (LOCK MODAL) --- */
 function checkPageAccess() {
     const currentPath = window.location.pathname.split("/").pop();
     
+    // Pages that require the user to be logged in
     const restrictedPages = [
         "job.html", 
         "roadmap.html", 
@@ -59,6 +77,7 @@ function checkPageAccess() {
         "profile.html"
     ];
 
+    // If on a restricted page AND not logged in -> Show Lock
     if (restrictedPages.includes(currentPath) && !isLoggedIn) {
         showAuthLockModal();
     }
@@ -68,20 +87,21 @@ function showAuthLockModal() {
     const overlay = document.createElement('div');
     overlay.className = 'auth-lock-overlay';
     
+    // Prevent scrolling on the body behind the modal
     document.body.style.overflow = 'hidden';
 
     overlay.innerHTML = `
         <div class="auth-lock-modal">
-            <div class="logos-container" style ="display: center; align-items: center; margin-bottom: 50px;">
+            <div class="logos-container" style ="display: flex; justify-content: center; align-items: center; margin-bottom: 30px;">
                 <img src="../static/images/blacklogo.png" alt="Masar Logo" class="logo-img" style="height: 40px; margin-right: 10px;">
-                <img src="../static/images/blacklogotext.png" alt="Masar Logo" class="logo-img" style="height: 40px; align-items: center;">
+                <img src="../static/images/blacklogotext.png" alt="Masar Logo" class="logo-img" style="height: 35px; align-items: center;">
             </div>
             <h2>Unlock Your Potential</h2>
             <p>Join Masar today to access thousands of jobs, personalized roadmaps, and track your career progress.</p>
             
             <a href="signup.html" class="auth-lock-btn auth-lock-join">Join Us Now</a>
             
-            <p style="margin-bottom: 10px; margin-top: 50px; font-size: 0.9rem;">Already have an account?</p>
+            <p style="margin-bottom: 10px; margin-top: 30px; font-size: 0.9rem; color: var(--text-color-faded);">Already have an account?</p>
             <a href="login.html" class="auth-lock-btn auth-lock-login">Log In</a>
             
             <a href="index.html" class="auth-home-link">← Back to Home</a>
@@ -161,11 +181,12 @@ function updateHomePageContent() {
 }
 
 /* --- JOB RENDERING & FILTERING --- */
-
 function filterAndRenderJobs() {
     const container = document.getElementById("job-listings-container");
+    // Ensure jobsData is loaded
     if (!container || typeof jobsData === 'undefined') return;
 
+    // 1. Get Filter Values
     const salaryMin = parseInt(document.getElementById("salary-input")?.value) || 0;
     
     const techCheckboxes = document.querySelectorAll('input[name="tech"]:checked');
@@ -174,15 +195,19 @@ function filterAndRenderJobs() {
     const dateFilter = document.getElementById("posted-date-filter")?.value || "all";
     const sortBy = document.getElementById("sort-by")?.value || "relevance";
 
+    // 2. Filter Data
     let filteredJobs = jobsData.filter(job => {
+        // Salary Check
         if (job.salaryMax < salaryMin) return false;
 
+        // Tech Stack Check
         if (selectedTech.length > 0) {
             const jobTech = job.techStack.map(t => t.toLowerCase());
             const hasMatch = selectedTech.some(tech => jobTech.includes(tech));
             if (!hasMatch) return false;
         }
 
+        // Date Check
         if (dateFilter !== "all") {
             const jobDate = new Date(job.postedDate);
             const now = new Date();
@@ -198,6 +223,7 @@ function filterAndRenderJobs() {
         return true;
     });
 
+    // 3. Sort Data
     if (sortBy === "salary-high") {
         filteredJobs.sort((a, b) => b.salaryMax - a.salaryMax);
     } else if (sortBy === "salary-low") {
@@ -206,10 +232,15 @@ function filterAndRenderJobs() {
         filteredJobs.sort((a, b) => new Date(b.postedDate) - new Date(a.postedDate));
     }
 
+    // 4. Render to HTML
     container.innerHTML = "";
     
     if (filteredJobs.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-color-secondary);"><h3>No jobs found matching your criteria.</h3></div>`;
+        container.innerHTML = `<div style="text-align:center; padding: 60px; color: var(--text-color-faded);">
+            <img src="../static/images/search.png" style="width:50px; opacity:0.5; filter:invert(0.5); margin-bottom:10px;">
+            <h3>No jobs found matching your criteria.</h3>
+            <p>Try adjusting your filters.</p>
+        </div>`;
         return;
     }
 
@@ -306,13 +337,14 @@ async function renderHeader() {
         const bookmarksContainer = document.getElementById("nav-bookmarks-container");
 
         if (isLoggedIn) {
+            // Logged In State
             if (userMenuContainer) {
                 const savedAvatar = localStorage.getItem("masar_avatar") || "https://ui-avatars.com/api/?name=User&background=random";
                 
                 userMenuContainer.innerHTML = `
                     ${darkModeSwitch}
                     <a href="profile.html" class="profile-btn">
-                        <img src="${savedAvatar}" alt="Profile" class="profile-img">
+                        <img src="${savedAvatar}" alt="Profile" class="profile-img" style="width:35px; height:35px; border-radius:50%; margin-top:5px; border:2px solid var(--border-color);">
                     </a>
                     <a href="#" onclick="logout(event)" class="logout-btn" title="Logout">
                         <img src="../static/images/logout.png" alt="Logout" class="logout-icon">
@@ -323,6 +355,7 @@ async function renderHeader() {
                 bookmarksContainer.innerHTML = `<li><a href="bookmarks.html">Bookmarks</a></li>`;
             }
         } else {
+            // Logged Out State
             if (userMenuContainer) {
                 userMenuContainer.innerHTML = `
                     ${darkModeSwitch}
@@ -361,8 +394,39 @@ function handleLogin(e) {
     const btn = e.target.querySelector('button');
     if(btn) btn.innerText = "Processing...";
     
+    // Simulate Network Request
     setTimeout(() => {
         localStorage.setItem("isLoggedIn", "true");
+        window.location.href = "index.html";
+    }, 1000);
+}
+
+function handleSignup(e) {
+    if (e) e.preventDefault(); 
+    
+    const pass = document.getElementById("password").value;
+    const confirmPass = document.getElementById("confirm-password").value;
+    const captcha = document.getElementById("captcha").checked;
+    
+    if (pass !== confirmPass) {
+        showToast("Passwords do not match.", "error");
+        return;
+    }
+    
+    if (!captcha) {
+        showToast("Please complete the captcha.", "error");
+        return;
+    }
+
+    const btn = e.target.querySelector('button');
+    if(btn) btn.innerText = "Creating Account...";
+    
+    setTimeout(() => {
+        localStorage.setItem("isLoggedIn", "true");
+        // Optionally save username for personalization
+        const username = document.getElementById("username").value;
+        localStorage.setItem("masar_username", username);
+        
         window.location.href = "index.html";
     }, 1000);
 }
@@ -412,6 +476,7 @@ function setupBookmarkToggle() {
         const bookmarkBtn = listing.querySelector('.bookmark-btn');
         const bookmarkIcon = listing.querySelector('.bookmark-icon');
 
+        // Only attach if not handled by inline onclick (used in dynamic jobs)
         if (bookmarkBtn && !bookmarkBtn.getAttribute('onclick')) {
             bookmarkBtn.addEventListener('click', function() {
                 let isBookmarked = this.getAttribute('data-bookmarked') === 'true';
@@ -448,6 +513,7 @@ async function renderJobFilter() {
         
         setupFilterSidebar();
         
+        // Attach Change Listeners to inputs to trigger filtering
         const inputs = filterContainer.querySelectorAll('input, select');
         inputs.forEach(input => {
             input.addEventListener('change', filterAndRenderJobs);

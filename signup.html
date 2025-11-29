@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masar - Sign Up</title>
+    <link rel="icon" type="image/png" href="../static/images/whitelogo.png">
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body class="light-page">
+    <div id="header"></div>
+
+    <main class="auth-main">
+        <div class="auth-card">
+            <div class="auth-logo-container">
+                <img src="../static/images/blacklogo.png" alt="Masar Logo" class="auth-logo-img">
+                <div class="auth-logo-spacer"></div>
+                <img src="../static/images/blacklogotext.png" alt="Masar Text" class="auth-logo-img">
+            </div>
+
+            <div class="auth-header">
+                <h1>Create Account</h1>
+                <p>Start your career path today</p>
+            </div>
+            
+            <form class="auth-form" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Choose a username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="name@example.com" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-input" placeholder="Create password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <input type="password" id="confirm-password" class="form-input" placeholder="Repeat password" required>
+                    </div>
+                </div>
+
+                <div class="captcha-container">
+                    <input type="checkbox" id="captcha" class="captcha-checkbox" required>
+                    <span class="captcha-text">I am not a robot</span>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Recaptcha_Logo.svg/1200px-Recaptcha_Logo.svg.png" style="height: 20px; margin-left: auto; opacity: 0.7;">
+                </div>
+
+                <button type="submit" class="auth-submit-btn">Sign Up</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="login.html" class="auth-link">Login</a></p>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masar - Login</title>
+    <link rel="icon" type="image/png" href="../static/images/whitelogo.png">
+    <link rel="stylesheet" href="../static/css/style.css">
+</head>
+<body class="light-page">
+    <div id="header"></div>
+
+    <main class="auth-main">
+        <div class="auth-card">
+            <div class="auth-logo-container">
+                <img src="../static/images/blacklogo.png" alt="Masar Logo" class="auth-logo-img">
+                <div class="auth-logo-spacer"></div>
+                <img src="../static/images/blacklogotext.png" alt="Masar Text" class="auth-logo-img">
+            </div>
+
+            <div class="auth-header">
+                <h1>Welcome Back</h1>
+                <p>Login to continue your journey</p>
+            </div>
+            
+            <form class="auth-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="name@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="auth-submit-btn">Login</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="signup.html" class="auth-link">Join Us</a></p>
+            </div>
+        </div>
+    </main>
+
+    <div id="footer"></div>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>
