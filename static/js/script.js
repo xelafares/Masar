@@ -556,3 +556,106 @@ function loadRoadmapTimeline(roadmapId) {
 
     container.innerHTML = allStepsHTML;
 }
+
+/* --- PROFILE PAGE LOGIC --- */
+
+// 1. Load Data on Page Init
+function loadProfileData() {
+    // Attempt to get data from LocalStorage, otherwise use defaults
+    const storedName = localStorage.getItem("masar_username") || "User Name";
+    const storedTitle = localStorage.getItem("masar_title") || "Aspiring Developer";
+    const storedEmail = localStorage.getItem("masar_email") || "";
+    const storedBio = localStorage.getItem("masar_bio") || "";
+    const storedAvatar = localStorage.getItem("masar_avatar");
+
+    // Update Sidebar
+    const sidebarName = document.getElementById("sidebar-username");
+    const sidebarTitle = document.getElementById("sidebar-title");
+    const avatarDisplay = document.getElementById("profile-avatar-display");
+
+    if(sidebarName) sidebarName.innerText = storedName;
+    if(sidebarTitle) sidebarTitle.innerText = storedTitle;
+    
+    // If we have a saved base64 image, use it. Otherwise default.
+    if(storedAvatar && avatarDisplay) {
+        avatarDisplay.src = storedAvatar;
+    }
+
+    // Update Form Inputs
+    const inputName = document.getElementById("settings-username");
+    const inputTitle = document.getElementById("settings-title");
+    const inputEmail = document.getElementById("settings-email");
+    const inputBio = document.getElementById("settings-bio");
+
+    if(inputName) inputName.value = storedName;
+    if(inputTitle) inputTitle.value = storedTitle;
+    if(inputEmail) inputEmail.value = storedEmail;
+    if(inputBio) inputBio.value = storedBio;
+}
+
+// 2. Handle Image Upload Preview & Save
+function previewAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Update the image source immediately
+            document.getElementById("profile-avatar-display").src = e.target.result;
+            
+            // Save to LocalStorage (Note: Base64 strings can be large, this is okay for small demos)
+            localStorage.setItem("masar_avatar", e.target.result);
+            
+            // Update header avatar if it exists
+            const headerAvatar = document.querySelector(".profile-img");
+            if(headerAvatar) headerAvatar.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// 3. Save Profile Info Form
+function saveProfileInfo(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById("settings-username").value;
+    const title = document.getElementById("settings-title").value;
+    const email = document.getElementById("settings-email").value;
+    const bio = document.getElementById("settings-bio").value;
+
+    // Save to LocalStorage
+    localStorage.setItem("masar_username", name);
+    localStorage.setItem("masar_title", title);
+    localStorage.setItem("masar_email", email);
+    localStorage.setItem("masar_bio", bio);
+
+    // Update UI elements immediately
+    document.getElementById("sidebar-username").innerText = name;
+    document.getElementById("sidebar-title").innerText = title;
+
+    // Update Welcome Message on Home if present
+    const welcomeMsg = document.getElementById("welcome-message");
+    if(welcomeMsg) {
+        welcomeMsg.innerHTML = `Welcome back, <strong>${name}</strong>!`;
+    }
+}
+
+// 4. Mock Password Change
+function changePassword(event) {
+    event.preventDefault();
+    const currentPass = document.getElementById("current-password").value;
+    const newPass = document.getElementById("new-password").value;
+
+    if(!currentPass || !newPass) {
+        alert("Please fill in both password fields.");
+        return;
+    }
+
+    // In a real app, you would verify currentPass with the backend
+    console.log("Password change requested.");
+    
+    // Clear fields
+    document.getElementById("current-password").value = "";
+    document.getElementById("new-password").value = "";
+    
+    alert("Password updated successfully!");
+}
