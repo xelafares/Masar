@@ -1577,11 +1577,10 @@ body.light-page.dark-mode header .nav-links a.active {
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 120px); 
-    position: relative; /* Context for haze */
+    position: relative;
     width: 100%;
 }
 
-/* New: Auth Page Background Haze */
 .auth-main::before {
     content: "";
     position: absolute;
@@ -1589,13 +1588,11 @@ body.light-page.dark-mode header .nav-links a.active {
     left: 0;
     width: 100%;
     height: 100%;
-    /* Use the same background logic as body */
     background-color: #220b3f;
     background-image: url('../images/background.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    /* The Blur Effect */
     filter: blur(8px);
     -webkit-filter: blur(8px);
     z-index: 0;
@@ -1605,13 +1602,13 @@ body.light-page.dark-mode header .nav-links a.active {
     background-color: var(--card-bg);
     padding: 40px;
     border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 15px 35px rgba(74, 20, 140, 0.5); 
     width: 100%;
     max-width: 420px;
     text-align: center;
-    border: 1px solid var(--border-color);
+    border: 1px solid #4A148C; 
     position: relative;
-    z-index: 1; /* Ensure it sits above the haze */
+    z-index: 1; 
 }
 
 .auth-header {
@@ -1652,6 +1649,7 @@ body.light-page.dark-mode header .nav-links a.active {
     flex-direction: column;
     gap: 15px; /* Tighter gap for signup form */
 }
+
 
 /* Captcha Styling */
 .captcha-container {
@@ -2062,4 +2060,161 @@ body.dark-mode .about-callout .secondary-button:hover,
 .about-callout .secondary-button:hover {
     background-color: #4A148C !important;
     color: white !important;
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-container .form-input {
+    padding-right: 45px;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 0; 
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    opacity: 0.5; 
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.password-toggle-btn:hover {
+    opacity: 0.8;
+}
+
+.toggle-password-icon {
+    width: 22px; 
+    height: 22px;
+    object-fit: contain; 
+    filter: invert(15%) sepia(87%) saturate(2256%) hue-rotate(264deg) brightness(84%) contrast(92%); 
+}
+
+.dark-mode .toggle-password-icon {
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
+}
+
+.password-requirements {
+    background-color: var(--hover-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: -5px; /* Pull it closer to the input field */
+}
+
+.password-requirements p {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--text-color-primary);
+    margin: 0 0 10px 0;
+}
+
+.password-requirements ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.password-requirements li {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    transition: color 0.3s;
+    padding-left: 20px;
+    position: relative;
+}
+
+.password-requirements li::before {
+    content: '✖';
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    color: #E57373; /* Light Red */
+}
+
+.password-requirements li.valid::before {
+    content: '✔';
+    color: #4CAF50; /* Green */
+}
+
+.password-requirements li.valid {
+    color: var(--text-color-secondary);
+}
+
+/* --- ROADMAP DATA STYLING --- */
+/* ... existing step-card styles ... */
+
+/* NEW: Contribution Callout Box */
+.contribution-callout {
+    /* Set a base background that works for both modes (or choose a light/dark neutral) */
+    background: var(--hover-bg); /* Use a light, noticeable background color */
+    border: 2px solid var(--border-color);
+    /* EDIT 1: Set base text color to primary purple */
+    color: var(--text-color-primary); 
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    margin-top: 50px;
+    box-shadow: 0 8px 20px rgba(74, 20, 140, 0.15);
+}
+
+/* REMOVED: Separate .dark-mode rule to stop it from changing colors */
+/* .dark-mode .contribution-callout { ... } */
+
+.contribution-callout h2 {
+    /* EDIT 2: Ensure the heading is always primary purple color */
+    color: var(--text-color-primary); 
+    font-size: 1.8rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-shadow: none;
+}
+
+.contribution-callout p {
+    /* EDIT 3: Set paragraph text color to a soft primary purple/faded color */
+    color: var(--text-color-primary); 
+    font-size: 1rem;
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+/* Contribution Button (Link to GitHub) */
+.contribution-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    
+    /* Primary Action Style */
+    background-color: #24292e; /* GitHub Black/Dark Gray */
+    color: white;
+    padding: 12px 30px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.contribution-button:hover {
+    background-color: #4A148C; /* Theme Purple on Hover */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(74, 20, 140, 0.3);
+}
+
+.github-icon-small {
+    width: 20px;
+    height: 20px;
+    /* Ensure icon is white/light regardless of input PNG/SVG color */
+    filter: invert(100%);
+}
+
+/* Ensure icons on dark mode are correct */
+.dark-mode .github-icon-small {
+    /* Icon should still be light/white inside the dark button */
+    filter: invert(100%); 
 }

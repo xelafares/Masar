@@ -1,26 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masar - Job Roles</title>
-    <link rel="icon" type="image/png" href="static/images/whitelogo.png">
-    <link rel="stylesheet" href="static/css/style.css">
-</head>
-<body class="light-page">
-    <div id="header"></div>
-
-    <main>
-        <div class="page-container">
-            <div class="back-btn-container">
-                <a href="roadmap.html" class="faded-back-btn">
-                    <img src="static/images/back-arrow.png" alt="<" class="back-icon">
-                    Back to Categories
-                </a>
-            </div>
-
+...
             <h1 class="roadmap-main-title">Job Roles</h1>
             <p class="roadmap-subtitle">Select a career path to view its roadmap.</p>
+            
+            <section class="roadmap-categories-grid">
+                <a href="roadmap_viewer.html?id=frontend_dev" class="roadmap-category-box role-bg">
+                    <div class="content-wrapper">
+                        <h2 class="category-title">Frontend Developer</h2>
+                        <p class="category-description">View the complete consolidated development path.</p>
+                    </div>
+                </a>
+            </section>
             
             <div id="roles-grid" class="roadmap-categories-grid"></div>
         </div>
@@ -29,10 +18,5 @@
 
     <script src="static/js/roadmap_data.js"></script>
     <script src="static/js/script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            renderGrid('role', 'roles-grid', 'role-bg');
-        });
-    </script>
 </body>
 </html>

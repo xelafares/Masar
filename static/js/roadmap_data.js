@@ -1,11 +1,18 @@
 /* static/js/roadmap_data.js */
 
 const roadmapData = {
-    // --- FRONTEND (Aligned with roadmap.sh image) ---
-    "frontend": {
-        title: "Frontend Developer (مطور واجهة أمامية)",
+    // CRITICAL FIX: The key was "frontend" but the logic in script.js (loadRoadmap)
+    // often looks for 'frontend_dev' or 'frontend' based on the HTML.
+    // We'll rename it to 'frontend_dev' for clarity and compatibility with typical calls.
+    "frontend_dev": {
+        title: "Frontend Developer",
         description: "Step-by-step guide to becoming a modern Frontend Developer.",
-        categories: ["role"], 
+
+        // --- FIX IS HERE ---
+        // Changed ["role, trending"] to ["role", "trending"]
+        categories: ["role", "trending"],
+        // ------------------
+
         steps: [
             // 1. Internet
             {
@@ -13,9 +20,9 @@ const roadmapData = {
                 title: "Internet Basics (الإنترنت)",
                 desc: "How does the internet work? HTTP, Domain Name, Hosting, DNS, and Browsers.",
                 resources: [
-                    { type: "video", title: "كيف يعمل الإنترنت؟ (Elzero)", url: "https://www.youtube.com/watch?v=s5fP1d_D87A" },
-                    { type: "video", title: "شرح الـ HTTP و HTTPS", url: "https://www.youtube.com/watch?v=q6Y-4YhO4gs" },
-                    { type: "video", title: "ما هو الـ DNS؟", url: "https://www.youtube.com/watch?v=27rCa0iI0cI" }
+                    { type: "video", title: "كيف يعمل الانترنت", url: "https://www.youtube.com/watch?v=TnMNDQHB33Q" },
+                    { type: "article", title: "ما هو الHTTPS", url: "https://www.ssl.com/ar/%D8%A3%D8%B3%D8%A6%D9%84%D8%A9-%D9%88%D8%A3%D8%AC%D9%88%D8%A8%D8%A9/%D9%85%D8%A7-%D9%87%D9%88-https/" },
+                    { type: "article", title: "ما هو ال DNS و كيف يعمل", url: "https://netriders.academy/all-forums/discussion/%D8%B4%D8%B1%D8%AD-%D8%B3%D8%B1%D9%8A%D8%B9-%D9%84-%D8%A8%D8%B1%D9%88%D8%AA%D9%88%D9%83%D9%88%D9%84-dns/" }
                 ]
             },
             // 2. HTML
@@ -24,9 +31,9 @@ const roadmapData = {
                 title: "HTML",
                 desc: "Learn the basics, Semantic HTML, Forms & Validations, Accessibility, and SEO Basics.",
                 resources: [
-                    { type: "video", title: "كورس HTML كامل (Elzero)", url: "https://www.youtube.com/playlist?list=PLDoPjvoNmBAw_t_XWUFbBX-c9MafPk9ji" },
-                    { type: "video", title: "Semantic HTML (شرح مفصل)", url: "https://www.youtube.com/watch?v=A_i7v-b3Wrs" },
-                    { type: "article", title: "سهولة الوصول (Accessibility)", url: "https://developer.mozilla.org/ar/docs/Learn/Accessibility" }
+                    { type: "video", title: "كورس HTML)", url: "https://www.youtube.com/watch?v=cvNTgKw8VlY" },
+                    { type: "article", title: "FreeCodeCamp", url: "https://www.freecodecamp.org/learn/2022/responsive-web-design/" },
+                    { type: "article", title: "ما هو الإنترنت وكيف يعمل الإنترنت", url: "https://www.zajil.com/ar/what-is-internet-how-the-internet-works/" }
                 ]
             },
             // 3. CSS
@@ -35,9 +42,8 @@ const roadmapData = {
                 title: "CSS",
                 desc: "Basics, Layouts (Float, Flexbox, Grid), and Responsive Design.",
                 resources: [
-                    { type: "video", title: "كورس CSS كامل (Elzero)", url: "https://www.youtube.com/playlist?list=PLDoPjvoNmBAyE_7NIgC6YAhlg3YI-V59n" },
-                    { type: "video", title: "Flexbox في فيديو واحد", url: "https://www.youtube.com/watch?v=GetrF8G7Q0s" },
-                    { type: "video", title: "Grid System شرح", url: "https://www.youtube.com/watch?v=RZQu85gW-I0" }
+                    { type: "video", title: "كورس css", url: "https://www.youtube.com/playlist?list=PLknwEmKsW8Os7rKViMCL8x6irVJT7McSS" },
+                    { type: "article", title: "تعلم لغة CSS", url: "https://harmash.com/tutorials/css/overview" },
                 ]
             },
             // 4. JavaScript
@@ -46,48 +52,69 @@ const roadmapData = {
                 title: "JavaScript",
                 desc: "Syntax, DOM Manipulation, Fetch API / AJAX.",
                 resources: [
-                    { type: "video", title: "كورس JavaScript (Elzero)", url: "https://www.youtube.com/playlist?list=PLDoPjvoNmBAx3kiplQR_oeDqLDBUDYwVv" },
-                    { type: "video", title: "شرح DOM Manipulation", url: "https://www.youtube.com/watch?v=5z_dJj_Lgqg" },
-                    { type: "video", title: "AJAX & JSON شرح", url: "https://www.youtube.com/watch?v=9QO4Du-gqQE" }
+                    { type: "video", title: "كورس جافاسكريبت", url: "https://www.youtube.com/watch?v=2EAV2cB3FWY&list=PL8q8h6vqfkSXcfaCL_nqsbLkDnodHpBG8" },
+                    { type: "article", title: "جافاسكربت", url: "https://harmash.com/tutorials/javascript/overview" },
                 ]
             },
             // 5. Version Control
             {
                 id: "fe_5",
-                title: "Version Control (Git)",
-                desc: "Git basics and hosting services (GitHub/GitLab).",
+                title: "Version Control / VCS Hosting (Git)",
+                desc: "Git basics and hosting services (GitHub).",
                 resources: [
-                    { type: "video", title: "كورس Git & GitHub (Elzero)", url: "https://www.youtube.com/playlist?list=PLDoPjvoNmBAw4eOJ58IZ8vZDB6SQ0mYgI" }
+                    { type: "video", title: "What is GitHub?", url: "https://www.youtube.com/watch?v=PsXDzwBW2Ls" },
+                    { type: "article", title: "دليل شرح استخدام موقع GitHub", url: "https://mystro-learning.com/ar/%D8%B4%D8%B1%D8%AD-%D8%A7%D8%B3%D8%AA%D8%AE%D8%AF%D8%A7%D9%85-%D9%85%D9%88%D9%82%D8%B9-github/" },
                 ]
             },
             // 6. Package Managers
             {
                 id: "fe_6",
                 title: "Package Managers",
-                desc: "npm, yarn, pnpm - Managing dependencies.",
+                desc: "npm and yarn - Managing dependencies.",
                 resources: [
-                    { type: "video", title: "شرح NPM وأوامره (Elzero)", url: "https://www.youtube.com/watch?v=OCIRRyBbz_w" },
-                    { type: "video", title: "ما هو Yarn؟", url: "https://www.youtube.com/watch?v=1Sjhc09Q7f8" }
+                    { type: "video", title: "NPM - ما هى وفيما تستخدم ؟ بالعربى", url: "https://www.youtube.com/watch?v=m4qICzy1XpU" },
+                    { type: "article", title: "دليلك الشامل إلى مدير الحزم npm في Node.js", url: "https://academy.hsoub.com/programming/javascript/nodejs/%D8%AF%D9%84%D9%8A%D9%84%D9%83-%D8%A7%D9%84%D8%B4%D8%A7%D9%85%D9%84-%D8%A5%D9%84%D9%89-%D9%85%D8%AF%D9%8A%D8%B1-%D8%A7%D9%84%D8%AD%D8%B2%D9%85-npm-%D9%81%D9%8A-nodejs-r1465/" }
                 ]
             },
             // 7. CSS Architecture & Preprocessors
             {
                 id: "fe_7",
-                title: "Modern CSS",
-                desc: "BEM, Sass, Tailwind CSS.",
+                title: "CSS Frameworks",
+                desc: "Tailwind CSS.",
                 resources: [
-                    { type: "video", title: "كورس SASS (Elzero)", url: "https://www.youtube.com/playlist?list=PLDoPjvoNmBAzlPyLCtU3D4k4YS0W8LgC7" },
-                    { type: "video", title: "شرح Tailwind CSS بالعربي", url: "https://www.youtube.com/playlist?list=PL0vfts4VzfNiI1k-S0sYq-gIqYc95iA4k" }
+                    { type: "article", title: "Official docs", url: "https://tailwindcss.com/" },
+                    { type: "video", title: "Learn Tailwind CSS", url: "https://www.youtube.com/watch?v=jSbBYEfCcgo" }
                 ]
             },
             // 8. Frameworks
             {
                 id: "fe_8",
-                title: "Frameworks (React)",
+                title: "React",
                 desc: "Building components and state management.",
                 resources: [
-                    { type: "video", title: "كورس React كامل (Unique Coderz)", url: "https://www.youtube.com/playlist?list=PLtFbQRDJ11sHMcfW6V9XW8r9j0iY7bN7b" },
-                    { type: "video", title: "Redux Toolkit شرح", url: "https://www.youtube.com/watch?v=9gWzJgXFpkw" }
+                    { type: "article", title: "Official docs", url: "https://ar.react.dev/learn" },
+                    { type: "video", title: "تعلم اساسيات رياكت في ساعة", url: "https://www.youtube.com/watch?v=3AJfX4Cd64c" },
+                    { type: "video", title: "Harmash تعلم React", url: "https://harmash.com/tutorials/react/overview" },
+                ]
+            },
+
+            {
+                id: "fe_8.1",
+                title: "Vue.js",
+                desc: "Building components and state management.",
+                resources: [
+                    { type: "article", title: "Official docs", url: "https://ar.vuejs.org/" },
+                    { type: "video", title: "تعلم اساسيات رياكت في ساعة", url: "https://www.youtube.com/watch?v=3AJfX4Cd64c" },
+                    { type: "video", title: "Harmash تعلم React", url: "https://harmash.com/tutorials/react/overview" },
+                ]
+            },
+
+            {
+                id: "fe_8.2",
+                title: "Angular",
+                desc: "Building components and state management.",
+                resources: [
+                    { type: "article", title: "Help us make it happen!", url: "" },
                 ]
             },
             // 9. Build Tools
@@ -149,15 +176,4 @@ const roadmapData = {
             }
         ]
     },
-
-    // --- OTHER ROLES (Examples - You can expand these later) ---
-    "backend": {
-        title: "Backend Developer",
-        description: "Server logic, Databases, and APIs.",
-        categories: ["role"],
-        steps: [
-            { id: "be_1", title: "Python Basics", desc: "Core syntax.", resources: [{ type: "video", title: "Python (Codezilla)", url: "https://www.youtube.com/playlist?list=PLuXY3ddo_8nzrO74UeZQVfV5CYYE2J0pz" }] }
-        ]
-    },
-    // ... keep your other roles here (data_analyst, etc.) as placeholders ...
 };

@@ -34,21 +34,34 @@
                     <input type="email" id="email" class="form-input" placeholder="name@example.com" required>
                 </div>
                 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" class="form-input" placeholder="Create password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="confirm-password">Confirm Password</label>
-                        <input type="password" id="confirm-password" class="form-input" placeholder="Repeat password" required>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="password" class="form-input" placeholder="Create password" required oninput="checkPasswordStrength()">
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('password')">
+                            <img src="static/images/eye_closed.png" id="toggle-icon-password" alt="" class="toggle-password-icon">
+                        </button>
                     </div>
                 </div>
 
-                <div class="captcha-container">
-                    <input type="checkbox" id="captcha" class="captcha-checkbox" required>
-                    <span class="captcha-text">I am not a robot</span>
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Recaptcha_Logo.svg/1200px-Recaptcha_Logo.svg.png" style="height: 20px; margin-left: auto; opacity: 0.7;">
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <div class="password-container">
+                        <input type="password" id="confirm-password" class="form-input" placeholder="Repeat password" required>
+                        <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('confirm-password')">
+                            <img src="static/images/eye_closed.png" id="toggle-icon-confirm-password" alt="" class="toggle-password-icon">
+                        </button>
+                    </div>
+                </div>
+
+                <div class="password-requirements" id="password-requirements">
+                    <p>Password must contain:</p>
+                    <ul>
+                        <li id="req-length" class="invalid">At least 8 characters</li>
+                        <li id="req-uppercase" class="invalid">One uppercase letter (A-Z)</li>
+                        <li id="req-number" class="invalid">One number (0-9)</li>
+                        <li id="req-special" class="invalid">One special character (!, @, #, etc.)</li>
+                    </ul>
                 </div>
 
                 <button type="submit" class="auth-submit-btn">Sign Up</button>
