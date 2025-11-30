@@ -2,8 +2,7 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
-passlib[bcrypt]
-python-jose
 requests
 beautifulsoup4
-lxml
+jinja2
+python-multipart

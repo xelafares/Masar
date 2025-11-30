@@ -2,30 +2,28 @@ let allJobs = [];
 let currentUserData = null;
 let isLoggedIn = localStorage.getItem("isLoggedIn") === "true"; 
 let currentUserId = localStorage.getItem("masar_user_id") || -1;
-// NEW: Map to store progress fetched from the database: { roadmap_id: { step_id: true, ... } }
-let userCompletedProgress = {}; 
+let userCompletedProgress = {};
 
 document.addEventListener("DOMContentLoaded", async function() {
     const userId = localStorage.getItem("masar_user_id");
     checkPageAccess(userId);
-    
+
     if (userId) {
         await fetchUserData(userId);
-        // NEW: Fetch roadmap progress after user data is confirmed
-        await fetchUserProgress(userId); 
+        await fetchUserProgress(userId);
     }
 
     await renderHeader();
     await renderFooter();
-    
+
     highlightActiveLink();
-    updateHomePageContent(); 
-    setupBookmarkToggle(); 
-    await renderJobFilter(); 
+    updateHomePageContent();
+    setupBookmarkToggle();
+    await renderJobFilter();
     setupSmartScroll();
-    setupFilterToggleButtons(); 
+    setupFilterToggleButtons();
     checkInitialDarkMode();
-    
+
     if (document.getElementById("profile-info-form")) {
         fillProfileForm();
     }
@@ -38,7 +36,6 @@ document.addEventListener("DOMContentLoaded", async function() {
         await fetchAndDisplayBookmarks();
     }
 
-    // NEW: Check if we are on a roadmap viewer page and load content
     if (document.querySelector('.roadmap-viewer')) {
         const urlParams = new URLSearchParams(window.location.search);
         const roadmapId = urlParams.get('id');
@@ -64,16 +61,12 @@ async function fetchUserData(userId) {
     }
 }
 
-// NEW FUNCTION: Fetch User Progress from DB
 async function fetchUserProgress(userId) {
     if (!isLoggedIn || userId === -1) return;
-    
     try {
         const response = await fetch(`/api/progress/${userId}`);
         if (response.ok) {
             const data = await response.json();
-            // Transform list of progress objects into a lookup map for quick checking:
-            // { 'frontend_dev': { 'fe_1': true, 'fe_2': true, ... } }
             userCompletedProgress = data.reduce((map, item) => {
                 if (!map[item.roadmap_id]) {
                     map[item.roadmap_id] = {};
@@ -96,7 +89,7 @@ async function fetchAndDisplayJobs() {
     try {
         const response = await fetch(`/api/jobs?user_id=${currentUserId}`);
         if (!response.ok) throw new Error("Failed to fetch jobs");
-        
+
         allJobs = await response.json();
         filterAndRenderJobs();
 
@@ -115,10 +108,10 @@ async function fetchAndDisplayBookmarks() {
     try {
         const response = await fetch(`/api/jobs?user_id=${currentUserId}`);
         if (!response.ok) throw new Error("Failed to fetch jobs");
-        
+
         const data = await response.json();
         allJobs = data.filter(job => job.bookmarked === true);
-        
+
         filterAndRenderJobs();
 
     } catch (error) {
@@ -134,29 +127,40 @@ function filterAndRenderJobs() {
     }
     if (!container) return;
 
+    // 1. Get Filter Values
     const salaryMin = parseInt(document.getElementById("salary-input")?.value) || 0;
+
+    // Fix: Ensure we get all checked inputs with name="tech"
     const techCheckboxes = document.querySelectorAll('input[name="tech"]:checked');
     const selectedTech = Array.from(techCheckboxes).map(cb => cb.value.toLowerCase());
+
     const dateFilter = document.getElementById("posted-date-filter")?.value || "all";
     const sortBy = document.getElementById("sort-by")?.value || "relevance";
 
+    // 2. Filter Logic
     let filteredJobs = allJobs.filter(job => {
         const jobMaxSalary = job.salary_max || 0;
+        // Ensure tech_stack is a string and lowercased safely
         const jobTech = (job.tech_stack || "").toLowerCase();
-        
-        if (jobMaxSalary < salaryMin) return false;
 
+        // Salary Filter (Check if job max salary is at least the requested min)
+        if (salaryMin > 0 && jobMaxSalary < salaryMin) return false;
+
+        // Tech Filter (OR logic: if job matches ANY selected tech)
         if (selectedTech.length > 0) {
-            const hasMatch = selectedTech.some(tech => jobTech.includes(tech));
+            // Check if job description or tech stack contains the keyword
+            const combinedText = (jobTech + " " + (job.title||"").toLowerCase() + " " + (job.description||"").toLowerCase());
+            const hasMatch = selectedTech.some(tech => combinedText.includes(tech));
             if (!hasMatch) return false;
         }
 
+        // Date Filter
         if (dateFilter !== "all" && job.posted_date) {
             const jobDate = new Date(job.posted_date);
             const now = new Date();
             const diffTime = Math.abs(now - jobDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-            
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
             if (dateFilter === "1d" && diffDays > 1) return false;
             if (dateFilter === "7d" && diffDays > 7) return false;
             if (dateFilter === "14d" && diffDays > 14) return false;
@@ -165,6 +169,7 @@ function filterAndRenderJobs() {
         return true;
     });
 
+    // 3. Sorting Logic
     if (sortBy === "salary-high") {
         filteredJobs.sort((a, b) => (b.salary_max || 0) - (a.salary_max || 0));
     } else if (sortBy === "salary-low") {
@@ -173,14 +178,18 @@ function filterAndRenderJobs() {
         filteredJobs.sort((a, b) => new Date(b.posted_date) - new Date(a.posted_date));
     }
 
+    // 4. Update UI: Active Filters
+    updateActiveFiltersPills(selectedTech, salaryMin, dateFilter);
+
+    // 5. Render Jobs
     container.innerHTML = "";
-    
+
     if (filteredJobs.length === 0) {
         const isBookmarksPage = container.id === "bookmarks-container";
-        const message = isBookmarksPage 
-            ? "You haven't bookmarked any jobs yet." 
+        const message = isBookmarksPage
+            ? "You haven't bookmarked any jobs yet."
             : "No jobs found matching your criteria.";
-            
+
         container.innerHTML = `<div style="text-align:center; padding: 60px; color: var(--text-color-faded);">
             <img src="static/images/search.png" style="width:50px; opacity:0.5; filter:invert(0.5); margin-bottom:10px;">
             <h3>${message}</h3>
@@ -191,7 +200,7 @@ function filterAndRenderJobs() {
 
     filteredJobs.forEach(job => {
         const techArray = job.tech_stack ? job.tech_stack.split(',') : [];
-        const tagsHtml = techArray.map((tech, index) => 
+        const tagsHtml = techArray.map((tech, index) =>
             `<span class="tech-tag ${index === 0 ? 'primary-tech' : ''}">${tech.trim()}</span>`
         ).join('');
 
@@ -203,8 +212,8 @@ function filterAndRenderJobs() {
         }
 
         const bookmarkIcon = job.bookmarked ? 'static/images/bookmark_full.png' : 'static/images/bookmark_empty.png';
-        const salaryText = (job.salary_min && job.salary_max) 
-            ? `$${job.salary_min.toLocaleString()} - $${job.salary_max.toLocaleString()} / year` 
+        const salaryText = (job.salary_min && job.salary_max)
+            ? `$${job.salary_min.toLocaleString()} - $${job.salary_max.toLocaleString()} / year`
             : "Salary not specified";
 
         const fullDesc = job.description || "No description available.";
@@ -258,6 +267,47 @@ function filterAndRenderJobs() {
     });
 }
 
+function updateActiveFiltersPills(techs, salary, date) {
+    const container = document.getElementById("active-filters-container");
+    if (!container) return;
+
+    let html = "";
+
+    // Tech Pills
+    techs.forEach(t => {
+        // Capitalize first letter for display
+        const display = t.charAt(0).toUpperCase() + t.slice(1);
+        html += `<span class="active-filter-pill">${display} <button onclick="removeFilter('tech', '${t}')">x</button></span>`;
+    });
+
+    // Salary Pill
+    if (salary > 0) {
+        html += `<span class="active-filter-pill">$${salary.toLocaleString()}+ <button onclick="removeFilter('salary')">x</button></span>`;
+    }
+
+    // Date Pill
+    if (date !== "all") {
+        let label = date === "1d" ? "Last 24h" : date === "7d" ? "Last 7 Days" : date === "30d" ? "Last 30 Days" : date;
+        html += `<span class="active-filter-pill">${label} <button onclick="removeFilter('date')">x</button></span>`;
+    }
+
+    container.innerHTML = html;
+}
+
+// Helper to remove filters via the pill 'x' button
+function removeFilter(type, value) {
+    if (type === 'tech') {
+        const cb = document.querySelector(`input[name="tech"][value="${value}"]`);
+        if (cb) cb.checked = false;
+    } else if (type === 'salary') {
+        document.getElementById("salary-input").value = 0;
+        document.getElementById("salary-slider").value = 0;
+    } else if (type === 'date') {
+        document.getElementById("posted-date-filter").value = "all";
+    }
+    filterAndRenderJobs();
+}
+
 function toggleDescription(btn) {
     const parent = btn.parentElement;
     const shortSpan = parent.querySelector('.desc-short');
@@ -282,13 +332,11 @@ async function toggleJobBookmark(jobId, btn) {
 
     const isBookmarked = btn.getAttribute('data-bookmarked') === 'true';
     const icon = btn.querySelector('img');
-    const userId = parseInt(localStorage.getItem("masar_user_id")); // Ensure integer for schema
+    const userId = parseInt(localStorage.getItem("masar_user_id"));
 
-    // Payload matches BookmarkCreate schema { user_id: int, job_id: int }
     const payload = { user_id: userId, job_id: jobId };
 
     if (isBookmarked) {
-        // --- REMOVE BOOKMARK ---
         try {
             const response = await fetch("/api/bookmarks", {
                 method: "DELETE",
@@ -300,12 +348,10 @@ async function toggleJobBookmark(jobId, btn) {
                 btn.setAttribute('data-bookmarked', 'false');
                 icon.src = 'static/images/bookmark_empty.png';
                 showToast("Job removed from bookmarks.", "success");
-                
-                // Update local state
+
                 const job = allJobs.find(j => j.id === jobId);
                 if(job) job.bookmarked = false;
 
-                // If on bookmarks page, re-render to remove it from view
                 if (document.getElementById("bookmarks-container")) {
                     filterAndRenderJobs();
                 }
@@ -317,7 +363,6 @@ async function toggleJobBookmark(jobId, btn) {
         }
 
     } else {
-        // --- ADD BOOKMARK ---
         try {
             const response = await fetch("/api/bookmarks", {
                 method: "POST",
@@ -329,7 +374,7 @@ async function toggleJobBookmark(jobId, btn) {
                 btn.setAttribute('data-bookmarked', 'true');
                 icon.src = 'static/images/bookmark_full.png';
                 showToast("Job saved to bookmarks!", "success");
-                
+
                 const job = allJobs.find(j => j.id === jobId);
                 if(job) job.bookmarked = true;
             } else {
@@ -371,17 +416,17 @@ function getUserAvatar(userId) {
 
 function checkPageAccess() {
     const currentPath = window.location.pathname.split("/").pop();
-    
+
     const restrictedPages = [
-        "job.html", 
-        "roadmap.html", 
-        "roadmap_roles.html", 
-        "roadmap_skills.html", 
-        "roadmap_trending.html", 
+        "roadmap.html",
+        "roadmap_roles.html",
+        "roadmap_skills.html",
+        "roadmap_trending.html",
         "roadmap_viewer.html",
         "bookmarks.html",
         "profile.html"
     ];
+    // Removed "job.html" from restricted list to allow guests to view jobs (optional choice)
 
     if (restrictedPages.includes(currentPath) && !isLoggedIn) {
         showAuthLockModal();
@@ -413,7 +458,7 @@ function showAuthLockModal() {
 function updateHomePageContent() {
     const msg = document.getElementById("welcome-message");
     const userId = localStorage.getItem("masar_user_id");
-    
+
     const bookmarksBtn = document.getElementById("bookmarks-button");
     const profileBtn = document.getElementById("profile-button");
     const joinBtn = document.getElementById("join-button");
@@ -460,20 +505,20 @@ function checkInitialDarkMode() {
 }
 
 async function renderJobFilter() {
-    const jobFilterContainer = document.getElementById("job-filter"); 
+    const jobFilterContainer = document.getElementById("job-filter");
     const bookmarksFilterContainer = document.getElementById("bookmarks-filter");
-    
+
     const filterContainer = jobFilterContainer || bookmarksFilterContainer;
     if (!filterContainer) return;
 
     try {
-        const response = await fetch("job_filter.html"); 
+        const response = await fetch("job_filter.html");
         if (!response.ok) throw new Error("Failed to load filter");
         const filterHTML = await response.text();
         filterContainer.innerHTML = filterHTML;
-        
+
         setupFilterSidebar();
-        
+
         const inputs = filterContainer.querySelectorAll('input, select');
         inputs.forEach(input => {
             input.addEventListener('change', filterAndRenderJobs);
@@ -491,7 +536,7 @@ function setupFilterSidebar() {
     const salarySlider = document.getElementById('salary-slider');
     const salaryInput = document.getElementById('salary-input');
     const body = document.body;
-    
+
     let overlay = document.querySelector('.filter-overlay');
     if (!overlay) {
         overlay = document.createElement('div');
@@ -514,7 +559,7 @@ function setupFilterSidebar() {
             }
         });
     }
-    
+
     if (salarySlider && salaryInput) {
         salarySlider.addEventListener('input', () => {
             salaryInput.value = salarySlider.value;
@@ -528,7 +573,7 @@ function setupFilterSidebar() {
             }
         });
     }
-    
+
     const applyBtn = document.querySelector('.apply-filters');
     if(applyBtn) {
         applyBtn.addEventListener('click', () => {
@@ -538,7 +583,7 @@ function setupFilterSidebar() {
             overlay.classList.remove('active');
         });
     }
-    
+
     const clearBtn = document.querySelector('.clear-filters');
     if(clearBtn) {
         clearBtn.addEventListener('click', () => {
@@ -546,7 +591,7 @@ function setupFilterSidebar() {
             salaryInput.value = 0;
             document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
             document.getElementById("posted-date-filter").value = "all";
-            
+
             filterAndRenderJobs();
         });
     }
@@ -556,11 +601,11 @@ function setupFilterToggleButtons() {
     const filterToggleBtn = document.getElementById('filter-toggle-btn') || document.getElementById('bookmarks-filter-toggle-btn');
     const body = document.body;
     if (!filterToggleBtn) return;
-    
+
     filterToggleBtn.addEventListener('click', () => {
         const actualSidebar = document.getElementById('job-filter-sidebar');
-        const overlay = document.querySelector('.filter-overlay'); 
-        if (!actualSidebar) return; 
+        const overlay = document.querySelector('.filter-overlay');
+        if (!actualSidebar) return;
 
         const isVisible = actualSidebar.classList.contains('filters-visible');
         if (!isVisible) {
@@ -585,7 +630,7 @@ async function renderHeader() {
         headerContainer.innerHTML = headerHTML;
 
         const isDarkInitial = localStorage.getItem('darkModeEnabled') === 'true';
-        
+
         const darkModeSwitch = `
             <div class="dark-mode-toggle-container" title="Toggle Light/Dark Mode">
                 <input type="checkbox" class="switch-checkbox" id="darkModeToggle" ${isDarkInitial ? 'checked' : ''} onchange="toggleDarkMode()">
@@ -602,13 +647,11 @@ async function renderHeader() {
 
         if (isLoggedIn) {
             if (userMenuContainer) {
-                // Use Global Data or Fetch if missing
                 let name = "User";
                 let avatar = `https://ui-avatars.com/api/?name=User&background=random&color=fff`;
-                
+
                 if (currentUserData) {
                     name = currentUserData.username;
-                    // matches 'avatar_data' in schema
                     avatar = currentUserData.avatar_data || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`;
                 }
 
@@ -652,8 +695,8 @@ async function renderFooter() {
 }
 
 async function handleLogin(e) {
-    e.preventDefault(); 
-    
+    e.preventDefault();
+
     const emailInput = document.getElementById("email");
     const passInput = document.getElementById("password");
     const btn = e.target.querySelector('button');
@@ -666,7 +709,6 @@ async function handleLogin(e) {
         const response = await fetch("/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // Matches UserLogin schema: { email, password }
             body: JSON.stringify({
                 email: emailInput.value,
                 password: passInput.value
@@ -675,14 +717,13 @@ async function handleLogin(e) {
 
         if (response.ok) {
             const data = await response.json();
-            
+
             localStorage.setItem("isLoggedIn", "true");
             localStorage.setItem("masar_username", data.username);
-            // Updated: Prefer 'id' from User schema, fallback to 'user_id' if returned by custom token
-            localStorage.setItem("masar_user_id", data.id || data.user_id); 
-            
+            localStorage.setItem("masar_user_id", data.id || data.user_id);
+
             showToast("Login successful!", "success");
-            
+
             setTimeout(() => {
                 window.location.href = "index.html";
             }, 1000);
@@ -701,14 +742,12 @@ async function handleLogin(e) {
 }
 
 async function handleSignup(e) {
-    e.preventDefault(); 
-    
+    e.preventDefault();
+
     const username = document.getElementById("username").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const confirmPass = document.getElementById("confirm-password").value;
-
-    // Check if password meets client-side requirements before submitting (redundant due to backend, but good UX)
     const allChecksPassed = document.querySelectorAll('.password-requirements li.invalid').length === 0;
 
     if (password !== confirmPass) {
@@ -716,12 +755,10 @@ async function handleSignup(e) {
         return;
     }
 
-    // Check if requirements list is visible and failed
     if (document.getElementById('password-requirements') && !allChecksPassed) {
         showToast("Password does not meet all requirements.", "error");
         return;
     }
-
 
     const btn = e.target.querySelector('button');
     const originalText = btn.innerText;
@@ -732,7 +769,6 @@ async function handleSignup(e) {
         const response = await fetch("/api/signup", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // Matches UserCreate schema: { username, email, password }
             body: JSON.stringify({
                 username: username,
                 email: email,
@@ -745,7 +781,6 @@ async function handleSignup(e) {
 
             localStorage.setItem("isLoggedIn", "true");
             localStorage.setItem("masar_username", data.username);
-            // Updated: 'User' schema uses 'id'.
             localStorage.setItem("masar_user_id", data.id);
 
             showToast("Account created! Welcome to Masar.", "success");
@@ -755,7 +790,6 @@ async function handleSignup(e) {
             }, 1500);
         } else {
             const errorData = await response.json();
-            // Handle Pydantic validation errors nicely
             const msg = errorData.detail || "Signup failed.";
             showToast(typeof msg === 'string' ? msg : "Validation error", "error");
             btn.innerText = originalText;
@@ -862,7 +896,6 @@ function fillProfileForm() {
     if (!currentUserData) return;
 
     document.getElementById("sidebar-username").innerText = currentUserData.username;
-    // Matches schema 'job_title'
     document.getElementById("sidebar-title").innerText = currentUserData.job_title || "Aspiring Developer";
 
     const avatarImg = document.getElementById("profile-avatar-display");
@@ -887,7 +920,6 @@ function previewAvatar(event) {
             const userId = localStorage.getItem("masar_user_id");
 
             try {
-                // Matches UserUpdate schema: { avatar_data: str }
                 const response = await fetch(`/api/users/${userId}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
@@ -910,10 +942,8 @@ async function saveProfileInfo(event) {
     event.preventDefault();
     const userId = localStorage.getItem("masar_user_id");
 
-    // Matches UserUpdate schema
     const updateData = {
         username: document.getElementById("settings-username").value,
-        // Email is disabled/readonly and not included in updateData
         job_title: document.getElementById("settings-title").value,
         bio: document.getElementById("settings-bio").value
     };
@@ -948,10 +978,6 @@ function changePassword(event) {
     document.getElementById("new-password").value = "";
     showToast("Password updated successfully!", "success");
 }
-
-// ===========================================
-// PASSWORD VALIDATION & VISIBILITY LOGIC
-// ===========================================
 
 function togglePasswordVisibility(fieldId) {
     const field = document.getElementById(fieldId);
@@ -993,41 +1019,8 @@ function checkPasswordStrength() {
         }
     });
 }
-// ===========================================
-// END NEW LOGIC
-// ===========================================
-
 
 let currentView = 'categories';
-
-function showJobRoles(e) {
-    if(e) e.preventDefault();
-    document.getElementById('roadmap-intro').style.display = 'none';
-    document.getElementById('categories-view').style.display = 'none';
-    const rolesView = document.getElementById('roles-view');
-    rolesView.style.display = 'grid';
-    rolesView.innerHTML = `
-        <div class="roadmap-category-box role-bg" onclick="loadRoadmapTimeline('frontend_dev')" style="cursor:pointer; height:auto; padding-top:20%;">
-            <div class="content-wrapper"><h3>Frontend Developer</h3></div>
-        </div>
-        <div class="roadmap-category-box role-bg" onclick="loadRoadmapTimeline('backend_dev')" style="cursor:pointer; height:auto; padding-top:20%;">
-            <div class="content-wrapper"><h3>Backend Developer</h3></div>
-        </div>
-    `;
-    currentView = 'roles';
-}
-
-function goBack() {
-    if (currentView === 'timeline') {
-        document.getElementById('timeline-view').style.display = 'none';
-        showJobRoles(null);
-    } else if (currentView === 'roles') {
-        document.getElementById('roles-view').style.display = 'none';
-        document.getElementById('categories-view').style.display = 'grid';
-        document.getElementById('roadmap-intro').style.display = 'block';
-        currentView = 'categories';
-    }
-}
 
 function renderGrid(categoryFilter, containerId, bgClass) {
     if (typeof roadmapData === 'undefined') return;
@@ -1045,11 +1038,6 @@ function renderGrid(categoryFilter, containerId, bgClass) {
     }
 }
 
-// ===========================================
-// PROGRESS TRACKING LOGIC (DB-BASED)
-// ===========================================
-
-// 1. RENDERER (Updated to use DB data)
 function loadRoadmapTimeline(roadmapId) {
     if (typeof roadmapData === 'undefined') return;
 
@@ -1058,20 +1046,18 @@ function loadRoadmapTimeline(roadmapId) {
     document.getElementById('roadmap-title').innerText = data.title;
     document.getElementById('roadmap-desc').innerText = data.description;
     const container = document.getElementById('timeline-container');
-    
-    // Check if the user has completed any steps for this specific roadmap (uses fetched data)
-    const completedSteps = userCompletedProgress[roadmapId] || {}; 
+
+    const completedSteps = userCompletedProgress[roadmapId] || {};
 
     const allStepsHTML = data.steps.map(step => {
-        // Check completion status against the database-backed map
-        const isCompleted = !!completedSteps[step.id]; 
-        
+        const isCompleted = !!completedSteps[step.id];
+
         const resourcesHTML = step.resources.map(res => {
             const isVideo = res.type === 'video';
-            const isContribution = res.type === 'other'; 
-            
-            let icon = '📄'; 
-            let cssClass = 'res-article'; 
+            const isContribution = res.type === 'other';
+
+            let icon = '📄';
+            let cssClass = 'res-article';
 
             if (isVideo) {
                 icon = '▶️';
@@ -1080,10 +1066,10 @@ function loadRoadmapTimeline(roadmapId) {
                 icon = '🤝';
                 cssClass = 'res-contribution';
             }
-            
+
             return `<a href="${res.url}" target="_blank" class="resource-item ${cssClass}"><span class="res-icon">${icon}</span><span class="res-title">${res.title}</span></a>`;
         }).join('');
-        
+
         return `<div class="timeline-step ${isCompleted ? 'completed' : ''}" id="step-${step.id}">
             <div class="timeline-marker"></div>
             <div class="step-card">
@@ -1096,8 +1082,7 @@ function loadRoadmapTimeline(roadmapId) {
             </div>
         </div>`;
     }).join('');
-    
-    // Add the contribution callout box at the bottom of the roadmap viewer
+
     const contributionCalloutHTML = `
         <section class="contribution-callout">
             <h2>Contribute to this Roadmap</h2>
@@ -1108,19 +1093,18 @@ function loadRoadmapTimeline(roadmapId) {
             </a>
         </section>
     `;
-    
+
     container.innerHTML = allStepsHTML + contributionCalloutHTML;
 }
 
 
-// 2. TOGGLER (Sends API calls)
 async function toggleStepProgress(roadmapId, stepId, checkbox) {
     if (!isLoggedIn) {
         showToast("Please log in to save your progress.", "error");
-        checkbox.checked = !checkbox.checked; 
+        checkbox.checked = !checkbox.checked;
         return;
     }
-    
+
     const userId = parseInt(currentUserId);
     const stepDiv = document.getElementById(`step-${stepId}`);
     const isChecked = checkbox.checked;
@@ -1130,10 +1114,9 @@ async function toggleStepProgress(roadmapId, stepId, checkbox) {
         roadmap_id: roadmapId,
         step_id: stepId
     };
-    
+
     try {
         if (isChecked) {
-            // MARK AS COMPLETED (POST to API)
             const response = await fetch("/api/progress", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -1145,13 +1128,11 @@ async function toggleStepProgress(roadmapId, stepId, checkbox) {
                 userCompletedProgress[roadmapId][stepId] = true;
                 showToast("Progress Saved!", "success");
             } else {
-                // Read and display specific error if the backend gives one (e.g., duplicate entry)
                 const errorData = await response.json();
                 console.error("Progress API Error:", errorData);
                 throw new Error(errorData.detail || "Failed to save progress.");
             }
         } else {
-            // MARK AS INCOMPLETE (DELETE to API)
             const response = await fetch("/api/progress", {
                 method: "DELETE",
                 headers: { "Content-Type": "application/json" },
@@ -1172,7 +1153,6 @@ async function toggleStepProgress(roadmapId, stepId, checkbox) {
     } catch (e) {
         console.error("API Error:", e);
         showToast("Could not save progress. Server error.", "error");
-        // Revert checkbox state on failure
         checkbox.checked = !isChecked; 
     }
 }
