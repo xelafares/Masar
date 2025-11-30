@@ -4,5 +4,3 @@ __pycache__/
 .idea/
 /JobScraper/__pycache__/
 /JobScraper/venv/
-/app/app.db
-/app/jobs.db
