@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masar - Bookmarks</title>
-    <link rel="icon" type="image/png" href="../static/images/whitelogo.png">
-    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="icon" type="image/png" href="static/images/whitelogo.png">
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
 <body class="light-page">
     <div id="header"></div>
@@ -18,121 +18,26 @@
             <div class="job-controls">
                 <h1>My Bookmarked Jobs</h1>
                 <div class="control-group">
-                    <select id="sort-by-bookmarks" class="sort-dropdown">
+                    <select id="sort-by" class="sort-dropdown" onchange="filterAndRenderJobs()">
                         <option value="relevance">Sort by: Relevance</option>
-                        <option value="date-saved">Sort by: Date Saved</option>
-                        <option value="date-posted">Sort by: Date Posted</option>
+                        <option value="date">Sort by: Date Posted</option>
                         <option value="salary-high">Sort by: Salary (High)</option>
+                        <option value="salary-low">Sort by: Salary (Low)</option>
                     </select>
                     <button id="bookmarks-filter-toggle-btn" class="filter-toggle-icon-btn" title="Filter Bookmarks">
-                        <img src="../static/images/filter.png" alt="Filter Icon" class="filter-toggle-icon">
+                        <img src="static/images/filter.png" alt="Filter Icon" class="filter-toggle-icon">
                     </button>
                 </div>
             </div>
             
-            <div id="active-filters-container" class="active-filters-container">
-            </div>
+            <div id="active-filters-container" class="active-filters-container"></div>
             
             <section class="job-list-wrapper">
-                
-                <section class="job-list">
-                    <article class="job-listing" data-job-id="101">
-                        <div class="job-image-container">
-                            <img src="../static/images/company_a_logo.png" alt="Company A Logo" class="company-logo">
-                        </div>
-                        
-                        <div class="job-details">
-                            <div class="job-header">
-                                <h2 class="job-title">Senior Frontend Engineer</h2>
-                                <button class="bookmark-btn" data-bookmarked="true">
-                                    <img src="../static/images/bookmark_full.png" alt="Bookmarked" class="bookmark-icon">
-                                </button>
-                            </div>
-
-                            <p class="company-name">TechCorp Innovations</p>
-                            
-                            <div class="tech-tag-container">
-                                <span class="tech-tag primary-tech">React</span>
-                                <span class="tech-tag">TypeScript</span>
-                                <span class="tech-tag">Node.js</span>
-                            </div>
-                            <p class="salary job-meta">Salary: $120,000 - $140,000 / year</p>
-
-                            <p class="job-description">We are seeking a highly skilled engineer to lead the development of our customer-facing web application using modern JavaScript frameworks.</p>
-
-                            <div class="job-footer">
-                                <p class="posted-date">Posted: 2 days ago</p>
-                                <a href="#" class="apply-btn">View Listing</a>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="job-listing" data-job-id="102">
-                        <div class="job-image-container">
-                            <img src="../static/images/company_b_logo.png" alt="Company B Logo" class="company-logo">
-                        </div>
-                        
-                        <div class="job-details">
-                            <div class="job-header">
-                                <h2 class="job-title">DevOps Specialist (Cloud)</h2>
-                                <button class="bookmark-btn" data-bookmarked="true">
-                                    <img src="../static/images/bookmark_full.png" alt="Bookmarked" class="bookmark-icon">
-                                </button>
-                            </div>
-
-                            <p class="company-name">Future Systems Inc.</p>
-                            
-                            <div class="tech-tag-container">
-                                <span class="tech-tag primary-tech">AWS</span>
-                                <span class="tech-tag">Docker</span>
-                                <span class="tech-tag">Kubernetes</span>
-                                <span class="tech-tag">Python</span>
-                            </div>
-                            <p class="salary job-meta">Salary: $155,000 - $175,000 / year</p>
-
-                            <p class="job-description">Manage and optimize our cloud infrastructure for maximum performance and scalability across global regions.</p>
-
-                            <div class="job-footer">
-                                <p class="posted-date">Posted: 1 week ago</p>
-                                <a href="#" class="apply-btn">View Listing</a>
-                            </div>
-                        </div>
-                    </article>
-
-                    <article class="job-listing" data-job-id="103">
-                        <div class="job-image-container">
-                            <img src="../static/images/company_c_logo.png" alt="Company C Logo" class="company-logo">
-                        </div>
-                        
-                        <div class="job-details">
-                            <div class="job-header">
-                                <h2 class="job-title">Data Scientist - ML Focus</h2>
-                                <button class="bookmark-btn" data-bookmarked="true">
-                                    <img src="../static/images/bookmark_full.png" alt="Bookmarked" class="bookmark-icon">
-                                </button>
-                            </div>
-
-                            <p class="company-name">Deep Insights Corp.</p>
-                            
-                            <div class="tech-tag-container">
-                                <span class="tech-tag primary-tech">Python</span>
-                                <span class="tech-tag">TensorFlow</span>
-                                <span class="tech-tag">SQL</span>
-                                <span class="tech-tag">Azure</span>
-                            </div>
-                            <p class="salary job-meta">Salary: $110,000 - $130,000 / year</p>
-
-                            <p class="job-description">Develop and deploy machine learning models to analyze vast datasets and predict market trends.</p>
-
-                            <div class="job-footer">
-                                <p class="posted-date">Posted: 3 hours ago</p>
-                                <a href="#" class="apply-btn">View Listing</a>
-                            </div>
-                        </div>
-                    </article>
-
+                <section id="bookmarks-container" class="job-list">
+                    <div style="text-align:center; padding: 40px; color: var(--text-color-faded);">
+                        <h3>Loading Bookmarks...</h3>
+                    </div>
                 </section>
-                
             </section>
         </div>
         
@@ -140,6 +45,6 @@
 
     <div id="footer"></div>
 
-    <script src="../static/js/script.js"></script>
+    <script src="static/js/script.js"></script>
 </body>
 </html>
