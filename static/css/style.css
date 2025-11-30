@@ -399,7 +399,7 @@ textarea.form-input {
     border-radius: 2px;
 }
 
-.about-callout.content-box-segment {
+.about-callout .content-box-segment {
     background-color: #F3E5F5 !important;
     color: #333 !important;
     border-color: #E1BEE7 !important;
@@ -1842,7 +1842,7 @@ body.light-page.dark-mode header .nav-links a.active {
     display: grid;
     grid-template-columns: 300px 1fr;
     gap: 30px;
-    /* align-items: start; REMOVED to allow sidebar to stretch */
+    align-items: start;
 }
 
 /* Sidebar Styling */
@@ -1852,7 +1852,7 @@ body.light-page.dark-mode header .nav-links a.active {
     margin: 0 !important;
     display: flex;          
     flex-direction: column; 
-    height: 100%;           
+    height: auto;           
     box-sizing: border-box;
 }
 
@@ -1933,7 +1933,7 @@ body.light-page.dark-mode header .nav-links a.active {
 .profile-settings {
     margin: 0 !important;
     padding: 40px !important;
-    height: 100%; /* Match sidebar height */
+    height: auto; /* Match sidebar height */
     box-sizing: border-box;
 }
 
