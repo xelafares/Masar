@@ -1,37 +1,19 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
 
 
+# --- Stored in app.db ---
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     email = Column(String, unique=True, index=True)
-    password = Column(String)  # In a real app, hash this!
+    password = Column(String)
 
-    # Relationships
     bookmarks = relationship("Bookmark", back_populates="user")
-
-
-class Job(Base):
-    __tablename__ = "jobs"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, index=True)
-    company = Column(String, index=True)
-    location = Column(String)
-    description = Column(String)
-    salary_min = Column(Integer)
-    salary_max = Column(Integer)
-    tech_stack = Column(String)  # We will store as "React,Node,AWS"
-    logo_url = Column(String)
-    posted_date = Column(DateTime, default=datetime.utcnow)
-
-    # Relationships
-    bookmarked_by = relationship("Bookmark", back_populates="job")
 
 
 class Bookmark(Base):
@@ -39,7 +21,26 @@ class Bookmark(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    job_id = Column(Integer, ForeignKey("jobs.id"))
+    job_id = Column(Integer)  # No ForeignKey to Job (different DB)
 
     user = relationship("User", back_populates="bookmarks")
-    job = relationship("Job", back_populates="bookmarked_by")
+
+
+# --- Stored in jobs.db ---
+class Job(Base):
+    __tablename__ = "jobs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    company = Column(String)
+    location = Column(String)
+    description = Column(Text)
+
+    # FIXED: Integers for filtering
+    salary_min = Column(Integer, nullable=True)
+    salary_max = Column(Integer, nullable=True)
+
+    tech_stack = Column(String)
+    logo_url = Column(String, nullable=True)
+    posted_date = Column(DateTime, default=datetime.utcnow)
+    url = Column(String)

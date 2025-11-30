@@ -5,27 +5,19 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from . import models, schemas, crud
-from .database import SessionLocal, engine
+from .database import engine_app, get_app_db, get_jobs_db
 
-# Create Database Tables
-models.Base.metadata.create_all(bind=engine)
+# Create Tables only for App DB (Jobs DB is managed by the scraper)
+models.Base.metadata.create_all(bind=engine_app)
 
 app = FastAPI()
 
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# ---------------- API ENDPOINTS ----------------
-
+# --- AUTH ---
 @app.post("/api/signup", response_model=schemas.User)
-def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+def signup(user: schemas.UserCreate, db: Session = Depends(get_app_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -33,33 +25,47 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @app.post("/api/login")
-def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_db)):
+def login(user_credentials: schemas.UserLogin, db: Session = Depends(get_app_db)):
     user = crud.get_user_by_email(db, email=user_credentials.email)
-    # Simple check (In production compare hashes)
     if not user or user.password != user_credentials.password:
         raise HTTPException(status_code=403, detail="Invalid Credentials")
-
     return {"status": "success", "user_id": user.id, "username": user.username}
 
 
+# --- JOBS ---
 @app.get("/api/jobs", response_model=List[schemas.Job])
-def read_jobs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    jobs = crud.get_jobs(db, skip=skip, limit=limit)
-    return jobs
+def read_jobs(
+        user_id: int = -1,
+        skip: int = 0,
+        limit: int = 100,
+        jobs_db: Session = Depends(get_jobs_db),
+        app_db: Session = Depends(get_app_db)
+):
+    # 1. Get Jobs from jobs.db
+    jobs = crud.get_jobs(jobs_db, skip=skip, limit=limit)
+
+    # 2. Get Bookmarks from app.db
+    bookmarked_ids = []
+    if user_id != -1:
+        bookmarked_ids = crud.get_user_bookmarked_ids(app_db, user_id=user_id)
+
+    # 3. Merge
+    results = []
+    for job in jobs:
+        j_schema = schemas.Job.model_validate(job)
+        if job.id in bookmarked_ids:
+            j_schema.bookmarked = True
+        results.append(j_schema)
+
+    return results
 
 
-@app.post("/api/jobs", response_model=schemas.Job)
-def create_job(job: schemas.JobCreate, db: Session = Depends(get_db)):
-    return crud.create_job(db=db, job=job)
+@app.post("/api/bookmarks")
+def add_bookmark(bookmark: schemas.BookmarkCreate, db: Session = Depends(get_app_db)):
+    return crud.create_bookmark(db, user_id=bookmark.user_id, job_id=bookmark.job_id)
 
 
-# ---------------- STATIC FILES & HTML SERVING ----------------
-
-# Mount the 'static' folder (CSS, JS, Images)
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-# Serve HTML files
+# --- HTML SERVING ---
 @app.get("/")
 async def read_index():
     return FileResponse("index.html")
@@ -67,5 +73,9 @@ async def read_index():
 
 @app.get("/{page_name}.html")
 async def read_html(page_name: str):
-    # This serves any .html file requested (e.g. /login.html, /job.html)
     return FileResponse(f"{page_name}.html")
+
+@app.delete("/api/bookmarks")
+def remove_bookmark(bookmark: schemas.BookmarkCreate, db: Session = Depends(get_app_db)):
+    crud.delete_bookmark(db, user_id=bookmark.user_id, job_id=bookmark.job_id)
+    return {"status": "removed"}
