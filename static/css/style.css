@@ -2031,3 +2031,35 @@ body.light-page.dark-mode header .nav-links a.active {
         transform: translateY(-20px);
     }
 }
+
+body.dark-mode .about-callout.content-box-segment,
+.about-callout.content-box-segment {
+    background-color: #F3E5F5 !important; /* Always Light Purple */
+    border: 1px solid #E1BEE7 !important;
+    color: #333 !important;                /* Always Dark Gray */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+body.dark-mode .about-callout h2,
+.about-callout h2 {
+    color: #4A148C !important;
+    text-shadow: none !important;
+}
+
+body.dark-mode .about-callout p,
+.about-callout p {
+    color: #555 !important;
+}
+
+body.dark-mode .about-callout .secondary-button,
+.about-callout .secondary-button {
+    color: #4A148C !important;
+    border-color: #4A148C !important;
+    background-color: transparent !important;
+}
+
+body.dark-mode .about-callout .secondary-button:hover,
+.about-callout .secondary-button:hover {
+    background-color: #4A148C !important;
+    color: white !important;
+}
