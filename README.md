@@ -1,6 +1,17 @@
-# Masar (مسار)
-
-**Your Career Path, Simplified**
+<p align="center">
+  <img src="static/images/fulllogowhite.png" alt="Masar Logo" width="280"/>
+</p>
+<h1 align="center">مسار — Masar</h1>
+<p align="center">
+  <strong>Your Career Path, Simplified</strong><br/>
+  A career development & job discovery platform built for the Saudi Arabian job market.
+</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
+  <img src="https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="SQLite"/>
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript"/>
+</p>
 
 Masar is a full-stack career development and job discovery platform built for the Saudi Arabian job market. It aggregates real job listings from Saudi employment portals and pairs them with structured career roadmaps, bridging the gap between finding a job and being ready for one. Built during the KEMMMA Hackathon.
 
