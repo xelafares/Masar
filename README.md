@@ -13,13 +13,13 @@
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript"/>
 </p>
 
-Masar is a full-stack career development and job discovery platform built for the Saudi Arabian job market. It aggregates real job listings from Saudi employment portals and pairs them with structured career roadmaps, bridging the gap between finding a job and being ready for one. Built during the KEMMMA Hackathon.
+Masar is a full-stack career development and job discovery platform. It aggregates real job listings from employment portals and pairs them with structured career roadmaps, bridging the gap between finding a job and being ready for one. Built during the KEMMMA Hackathon.
 
 ---
 
 ## Features
 
-- **Job Discovery** — Browse jobs scraped in real-time from Jadarat and Tamheer Saudi job portals
+- **Job Discovery** — Browse jobs scraped in real-time from job portals
 - **Advanced Filtering** — Filter by title, company, location, work type, and date range
 - **Career Roadmaps** — Step-by-step learning paths organized by role, skill, or trending topic
 - **Bookmarks** — Save and manage favorite job listings
