@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript"/>
 </p>
 
-Masar is a full-stack career development and job discovery platform. It aggregates real job listings from employment portals and pairs them with structured career roadmaps, bridging the gap between finding a job and being ready for one. Built during the <a href="https://qimma.dev/" target="_blank" rel="noopener noreferrer">Qimma Hackathon</a>..
+Masar is a full-stack career development and job discovery platform. It aggregates real job listings from employment portals and pairs them with structured career roadmaps, bridging the gap between finding a job and being ready for one. Built during the <a href="https://qimma.dev/" target="_blank" rel="noopener noreferrer">Qimma Hackathon</a>.
 
 ---
 
